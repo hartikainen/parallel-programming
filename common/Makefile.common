@@ -10,8 +10,8 @@ CXXFLAGS=-g -std=c++11 -Wall -Wextra -Wno-unused-parameter -Wno-unknown-pragmas 
 CXXFLAGS+=-march=native $(shell ../util/find-flags)
 ifeq ($(DEBUG),1)
 else ifeq ($(DEBUG),2)
-CXXFLAGS+=-fsanitize=address -fsanitize=undefined
-LDFLAGS+=-fsanitize=address -fsanitize=undefined
+CXXFLAGS+=$(shell ../util/find-sanity $(CXX))
+LDFLAGS+=$(shell ../util/find-sanity $(CXX))
 else
 CXXFLAGS+=-O3
 endif
