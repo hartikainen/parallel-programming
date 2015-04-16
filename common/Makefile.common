@@ -7,7 +7,10 @@ $(error could not find a suitable C++ complier)
 endif
 
 CXXFLAGS=-g -std=c++11 -Wall -Wextra -Wno-unused-parameter -Wno-unknown-pragmas -Werror
+ifeq ($(ARCH),1)
+else
 CXXFLAGS+=-march=native $(shell ../util/find-flags)
+endif
 ifeq ($(DEBUG),1)
 else ifeq ($(DEBUG),2)
 CXXFLAGS+=$(shell ../util/find-sanity $(CXX))
