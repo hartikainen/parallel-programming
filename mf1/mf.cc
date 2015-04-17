@@ -36,8 +36,8 @@ void mf(int ny, int nx, int hy, int hx, const float* in, float* out) {
 	}
       }
 
-      // Find the median, if window's length is even, median
-      // is the average of the two 'middle' values
+      // Find the median. If the window's length is even, median
+      // is the average of the two 'middle' values (m1, m2)
       if (wsize % 2 == 0) {
 	std::nth_element(window, window + wsize/2, window + wsize);
 	m2 = window[wsize/2];
