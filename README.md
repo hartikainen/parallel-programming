@@ -112,6 +112,15 @@ Disable optimisations and enable address sanitizer
     make DEBUG=2
     make test
 
+Disable modern CPU instructions:
+
+    cd mf1
+    make clean
+    make ARCH=1
+    make test
+
+You can also combine these, e.g., ARCH=1 DEBUG=1.
+
 Remember to run `make clean` afterwards.
 
 
