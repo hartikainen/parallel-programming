@@ -9,7 +9,7 @@ static void benchmark(int ny, int nx, int k) {
     std::mt19937 rng;
     std::uniform_real_distribution<float> u(0.0f, 1.0f);
     std::vector<float> data(ny * nx);
-    std::vector<float> result(ny * ny);
+    std::vector<float> result(ny * nx);
     for (int y = 0; y < ny; ++y) {
         for (int x = 0; x < nx; ++x) {
             float v = u(rng);
