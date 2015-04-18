@@ -6,8 +6,8 @@ void mf(int ny, int nx, int hy, int hx, const float* in, float* out) {
 
 #pragma omp parallel for
   // Loop through the pixels in the image
-  for (py=0; py<ny; py++) {
-    for (px=0; px<nx; px++) {
+  for (int py=0; py<ny; py++) {
+    for (int px=0; px<nx; px++) {
 
       /* px, py: loop indices for the actual points in the image
        * n: the index for assigning window values
@@ -15,7 +15,7 @@ void mf(int ny, int nx, int hy, int hx, const float* in, float* out) {
        * wxmin, wxmax, wymin, wymax: the boundaries for the rectangle window
        * wsize: the size of the window array
        */
-      int px, py, n, i, j, wxmin, wxmax, wymin, wymax, wsize;
+      int n, wxmin, wxmax, wymin, wymax, wsize;
 
       // window: The array to store the window values and count the median from
       float* window;
@@ -34,8 +34,8 @@ void mf(int ny, int nx, int hy, int hx, const float* in, float* out) {
 
       // Store the values in window
       n = 0;
-      for (i=wxmin; i<wxmax; i++) {
-	for (j=wymin; j<wymax; j++) {
+      for (int i=wxmin; i<wxmax; i++) {
+	for (int j=wymin; j<wymax; j++) {
 	  window[n++] = in[j*nx + i];
 	}
       }
