@@ -34,6 +34,7 @@ void mf(int ny, int nx, int hy, int hx, const float* in, float* out) {
 
       // Store the values in window
       n = 0;
+      #pragma omp parallel for
       for (int i=wxmin; i<wxmax; i++) {
 	for (int j=wymin; j<wymax; j++) {
 	  window[n++] = in[j*nx + i];
