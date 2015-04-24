@@ -34,10 +34,14 @@ double dot_product(double* v1, double* v2, int len) {
 }
 
 void correlate(int ny, int nx, const float* data, float* result) {
+  int max_dim = std::max(nx, ny);
   double row_mean, row_rss, sum, square_sum, dp;
-  double X[nx*ny], v1[nx], v2[ny];
-  std::cout << "data: " << data[0] << " " << data[1] << " " << data[2] << " " << data[3] << "\n";
+  double X[nx*ny], v1[max_dim], v2[max_dim];
+
   std::cout << "nx: " << nx << " ny: " << ny << "\n";
+  std::cout << "data: " << data[0] << " " << data[1] << " " << data[2] << " " << data[3] << " " << data[4] << "\n";
+  std::cout << "      " << data[5] << " " << data[6] << " " << data[7] << " " << data[8] << " " << data[9] <<"\n";
+
   for (int y=0; y<ny; y++) {
     sum = 0.0;
     square_sum = 0.0;
@@ -57,7 +61,8 @@ void correlate(int ny, int nx, const float* data, float* result) {
     }
 
     std::cout << "X after zero meaning:\n";
-    std::cout << "X: " << X[0] << " " << X[1] << " " << X[2] << " " << X[3] << "\n";
+    std::cout << "X: " << X[0] << " " << X[1] << " " << X[2] << " " << X[3] << " " << X[4] << "\n";
+    std::cout << "   " << X[5] << " " << X[6] << " " << X[7] << " " << X[8] << " " << X[9] <<"\n";
 
     row_rss = sqrt(square_sum);
 
@@ -67,27 +72,20 @@ void correlate(int ny, int nx, const float* data, float* result) {
       X[POINT] = X[POINT] / row_rss;
     }
 
-    std::cout << "X after unit variancing:\n";
-    std::cout << "X: " << X[0] << " " << X[1] << " " << X[2] << " " << X[3] << "\n";
+    std::cout << "X: " << X[0] << " " << X[1] << " " << X[2] << " " << X[3] << " " << X[4] << "\n";
+    std::cout << "   " << X[5] << " " << X[6] << " " << X[7] << " " << X[8] << " " << X[9] <<"\n";
 
   }
-  std::cout << "X: " << X[0] << " " << X[1] << " " << X[2] << " " << X[3] << "\n";
 
-  printf("X:\n");
   for (int y=0; y<ny; y++) {
-    //    for (int x=0; x<y; x++) printf("%.8f ", X[POINT]);
     for (int x=y; x<ny; x++) {
-      printf("%.8f ", X[POINT]);
 
-      for (int i=0; i<nx; i++) {
-	v1[i] = X[y*ny + i];
+      for (int i=0; i<ny; i++) {
+	v1[i] = X[y*nx + i];
+	v2[i] = X[y*nx + i];
       }
 
-      for (int i=0; i<nx; i++) {
-	v2[i] = X[x*ny + i];
-      }
-
-      dp = dot_product(v1, v2, nx);
+      dp = dot_product(v1, v2, max_dim);
       result[POINT] = (float) dp;
     }
 
@@ -97,7 +95,7 @@ void correlate(int ny, int nx, const float* data, float* result) {
   printf("result:\n");
   for (int y=0; y<ny; y++) {
     for (int x=0; x<y; x++) printf(".......... ");
-    for (int x=y; x<nx; x++) {
+    for (int x=y; x<ny; x++) {
       printf("%.8f ", result[POINT]);
     }
     printf("\n");
