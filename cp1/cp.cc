@@ -12,7 +12,7 @@ double get_mean(const float* row, int nx) {
   return mean;
 }
 
-double get_root_square_sum(const float* row, int nx) {
+double get_root_square_sum(double* row, int nx) {
   double square_sum = 0, root_square_sum;
   for (int x=0; x<nx; x++) {
     square_sum += pow((double) row[x], 2.0);
@@ -32,26 +32,17 @@ double dot_product(double* v1, double* v2, int len) {
 }
 
 void correlate(int ny, int nx, const float* data, float* result) {
-  int max_dim = std::max(nx, ny);
-  double row_mean, row_rss, sum, square_sum, dp;
-  double X[nx*ny], v1[max_dim], v2[max_dim];
+  double row_mean, row_rss, dp;
+  double X[nx*ny], v1[nx], v2[nx];
 
   for (int y=0; y<ny; y++) {
-    sum = 0.0;
-    square_sum = 0.0;
-
-    for (int x=0; x<nx; x++) {
-      sum += (double) data[y*nx + x];
-    }
-
-    row_mean = sum / ((double) nx);
+    row_mean = get_mean(&data[y*nx], nx);
 
     for (int x=0; x<nx; x++) {
       X[y*nx + x] = ((double) data[y*nx + x]) - row_mean;
-      square_sum += X[y*nx + x] * X[y*nx + x];
     }
 
-    row_rss = std::sqrt(square_sum);
+    row_rss = get_root_square_sum(&X[y*nx], nx);
 
     for (int x=0; x<nx; x++) {
       X[y*nx + x] = X[y*nx + x] / row_rss;
@@ -66,7 +57,7 @@ void correlate(int ny, int nx, const float* data, float* result) {
 	v2[i] = X[y*nx + i];
       }
 
-      dp = dot_product(v1, v2, max_dim);
+      dp = dot_product(v1, v2, nx);
       result[y*ny + x] = (float) dp;
     }
   }
