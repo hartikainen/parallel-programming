@@ -17,7 +17,7 @@ double get_root_square_sum(double* row, int nx) {
   for (int x=0; x<nx; x++) {
     square_sum += pow((double) row[x], 2.0);
   }
-  root_square_sum = sqrt(square_sum);
+  root_square_sum = std::sqrt(square_sum);
   return root_square_sum;
 }
 
@@ -42,12 +42,15 @@ void correlate(int ny, int nx, const float* data, float* result) {
     }
   }
 
+  double r, s;
   for (int y=0; y<ny; y++) {
     for (int x=y; x<ny; x++) {
-
+      r=0;
       for (int i=0; i<nx; i++) {
-	result[y*ny + x] += X[x*nx + i] * X[y*nx + i];
+	s = X[x*nx + i] * X[y*nx + i];
+	r += s;
       }
+      result[y*ny + x] = r;
     }
   }
 }
