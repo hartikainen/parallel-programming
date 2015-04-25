@@ -57,8 +57,8 @@ double dot_product(double4_t* v1, double4_t* v2, int len) {
 void dot_product2(double4_t* v1, double4_t* v2, double4_t* v3, double4_t* v4, int len, double* sum) {
   double4_t sum1 = {0.0, 0.0, 0.0, 0.0}, sum2 = {0.0, 0.0, 0.0, 0.0}, sum3 = {0.0, 0.0, 0.0, 0.0}, sum4 = {0.0, 0.0, 0.0, 0.0};
 
-  printf("v1: %f, %f, %f, %f\n", v1[1][0], v1[1][1], v1[1][2], v1[1][3]);
-  printf("v2: %f, %f, %f, %f\n", v2[1][0], v2[1][1], v2[1][2], v2[1][3]);
+  // printf("v1: %f, %f, %f, %f\n", v1[1][0], v1[1][1], v1[1][2], v1[1][3]);
+  // printf("v2: %f, %f, %f, %f\n", v2[1][0], v2[1][1], v2[1][2], v2[1][3]);
   for (int i=0; i<len; i++) {
     sum1 += v1[i] * v3[i];
     sum2 += v1[i] * v4[i];
@@ -73,10 +73,9 @@ void dot_product2(double4_t* v1, double4_t* v2, double4_t* v3, double4_t* v4, in
     sum[3] += sum4[i];
   }
 
-  printf("jiiri:\n");
-  for (int i=0; i<4; i++) {printf("%f ", sum[i]);}
-  printf("\n");
-
+  // printf("jiiri:\n");
+  // for (int i=0; i<4; i++) {printf("%f ", sum[i]);}
+  // printf("\n");
 }
 
 void correlate(int ny, int nx, const float* data, float* result) {
@@ -85,13 +84,13 @@ void correlate(int ny, int nx, const float* data, float* result) {
   int xpad = nnx * 4.0 - nx;
   double4_t* X = double4_alloc(nnx*ny);
 
-  std::cout << "\ndata: \n";
-  for (int y=0; y<ny; y++) {
-    for (int x=0; x<nx; x++) {
-      printf("%f ", data[y*nx + x]);
-    }
-  }
-    printf("\n");
+  // std::cout << "\ndata: \n";
+  // for (int y=0; y<ny; y++) {
+  //   for (int x=0; x<nx; x++) {
+  //     printf("%f ", data[y*nx + x]);
+  //   }
+  // }
+  //   printf("\n");
 
   // Copy the data into double4_t array X
 #pragma omp parallel for
@@ -152,6 +151,11 @@ void correlate(int ny, int nx, const float* data, float* result) {
       result[(y+1)*ny + x] = jiiri[2];
       result[(y+1)*ny + x+1] = jiiri[3];
 
+
+      // for (int i=asdf; i<ny; i++) {
+      // 	result[y*ny + i] = dot_product(&X[y*nnx], &X[i*nnx], nnx);
+      // }
+
       // double4_t* v5;
       // double4_t* v6;
       // double4_t* v7;
@@ -163,14 +167,22 @@ void correlate(int ny, int nx, const float* data, float* result) {
     }
   }
 
-  for (int j=ny-bs; j<ny; j++) {
-    double4_t* v1;
+  for (int j=0; j<ny; j++) {
+    double4_t* v1 = &X[j*nnx];
     double4_t* v2;
-    v1 = &X[j*nnx];
-    for (int i=ny-bs; i<ny; i++) {
+    for (int i=std::floor(ny/bs)*bs; i<ny; i++) {
       v2 = &X[i*nnx];
       result[j*ny + i] = dot_product(v1, v2, nnx);
     }
   }
+
+  // printf("result:\n");
+  // for (int j=0; j<ny; j++) {
+  //   for (int i=0; i<j; i++) {printf("........ ");}
+  //   for (int i=j; i<ny; i++) {
+  //     printf("%f ", result[j*ny + i]);
+  //   }
+  //   printf("\n");
+  // }
 
 }
