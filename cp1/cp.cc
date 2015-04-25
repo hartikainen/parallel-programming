@@ -21,19 +21,9 @@ double get_root_square_sum(double* row, int nx) {
   return root_square_sum;
 }
 
-double dot_product(double* v1, double* v2, int len) {
-  double dp = 0.0;
-
-  for (int i=0; i<len; i++) {
-    dp += v1[i] * v2[i];
-  }
-
-  return dp;
-}
-
 void correlate(int ny, int nx, const float* data, float* result) {
-  double row_mean, row_rss, dp;
-  double X[nx*ny], v1[nx], v2[nx];
+  double row_mean, row_rss;
+  double X[nx*ny];
 
   for (int y=0; y<ny; y++) {
     row_mean = get_mean(&data[y*nx], nx);
@@ -53,12 +43,8 @@ void correlate(int ny, int nx, const float* data, float* result) {
     for (int x=y; x<ny; x++) {
 
       for (int i=0; i<nx; i++) {
-	v1[i] = X[x*nx + i];
-	v2[i] = X[y*nx + i];
+	result[y*ny + x] = X[x*nx + i] * X[y*nx + i];
       }
-
-      dp = dot_product(v1, v2, nx);
-      result[y*ny + x] = (float) dp;
     }
   }
 }
