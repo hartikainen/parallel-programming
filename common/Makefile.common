@@ -6,7 +6,7 @@ ifeq ($(CXX),)
 $(error could not find a suitable C++ complier)
 endif
 
-CXXFLAGS=-g -std=c++11 -Wall -Wextra -Wno-unused-parameter -Wno-unknown-pragmas -Werror
+CXXFLAGS=-g -std=c++11 -Wall -Wextra -Werror -Wno-error=unused-parameter -Wno-error=unused-function -Wno-error=unknown-pragmas
 ifeq ($(ARCH),1)
 else
 CXXFLAGS+=-march=native $(shell ../util/find-flags)

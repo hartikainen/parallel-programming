@@ -11,6 +11,7 @@ pngmf
 is-test
 cp-test
 mf-test
+so-test
 is-benchmark
 cp-benchmark
 mf-benchmark

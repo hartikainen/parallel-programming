@@ -1,1 +1,0 @@
-../is0/benchmark.sh

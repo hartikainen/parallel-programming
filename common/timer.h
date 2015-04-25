@@ -7,12 +7,16 @@
 
 class Timer {
 public:
-    Timer() : start(get_time())
+    Timer(bool add_tab_=false) : start{get_time()}, add_tab{add_tab_}
     {}
 
     ~Timer() {
         double now = get_time();
-        std::cout << std::fixed << std::setprecision(3) << (now - start) << std::flush;
+        std::cout << std::fixed << std::setprecision(3) << (now - start);
+        if (add_tab) {
+            std::cout << "\t";
+        }
+        std::cout << std::flush;
         std::cout.copyfmt(std::ios(NULL));
     }
 
@@ -24,6 +28,7 @@ private:
     }
 
     double start;
+    bool add_tab;
 };
 
 #endif
