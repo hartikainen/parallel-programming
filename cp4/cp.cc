@@ -4,7 +4,7 @@
 #include <iostream>
 #include "../common/vector.h"
 
-#define BLOCK_SIZE 2
+#define BLOCK_SIZE 3
 
 double get_sum(double4_t* row, int n) {
   double4_t sum4_t = {0.0, 0.0, 0.0, 0.0};
@@ -54,16 +54,20 @@ double dot_product(double4_t* v1, double4_t* v2, int len) {
   return sum;
 }
 
-void dot_product2(double4_t* v1, double4_t* v2, double4_t* v3, double4_t* v4, int len, double* sum) {
-  double4_t sum1 = {0.0, 0.0, 0.0, 0.0}, sum2 = {0.0, 0.0, 0.0, 0.0}, sum3 = {0.0, 0.0, 0.0, 0.0}, sum4 = {0.0, 0.0, 0.0, 0.0};
+void dot_product2(double4_t* v1, double4_t* v2, double4_t* v3, double4_t* v4, double4_t* v5, double4_t* v6, int len, double* sum) {
+  double4_t sum1 = {0.0, 0.0, 0.0, 0.0}, sum2 = {0.0, 0.0, 0.0, 0.0}, sum3 = {0.0, 0.0, 0.0, 0.0}, sum4 = {0.0, 0.0, 0.0, 0.0},
+            sum5 = {0.0, 0.0, 0.0, 0.0}, sum6 = {0.0, 0.0, 0.0, 0.0}, sum7 = {0.0, 0.0, 0.0, 0.0}, sum8 = {0.0, 0.0, 0.0, 0.0}, sum9 = {0.0, 0.0, 0.0, 0.0};
 
-  // printf("v1: %f, %f, %f, %f\n", v1[1][0], v1[1][1], v1[1][2], v1[1][3]);
-  // printf("v2: %f, %f, %f, %f\n", v2[1][0], v2[1][1], v2[1][2], v2[1][3]);
   for (int i=0; i<len; i++) {
-    sum1 += v1[i] * v3[i];
-    sum2 += v1[i] * v4[i];
-    sum3 += v2[i] * v3[i];
+    sum1 += v1[i] * v4[i];
+    sum2 += v1[i] * v5[i];
+    sum3 += v1[i] * v6[i];
     sum4 += v2[i] * v4[i];
+    sum5 += v2[i] * v5[i];
+    sum6 += v2[i] * v6[i];
+    sum7 += v3[i] * v4[i];
+    sum8 += v3[i] * v5[i];
+    sum9 += v3[i] * v6[i];
   }
 
   for (int i=0; i<4; i++) {
@@ -71,11 +75,12 @@ void dot_product2(double4_t* v1, double4_t* v2, double4_t* v3, double4_t* v4, in
     sum[1] += sum2[i];
     sum[2] += sum3[i];
     sum[3] += sum4[i];
+    sum[4] += sum5[i];
+    sum[5] += sum6[i];
+    sum[6] += sum7[i];
+    sum[7] += sum8[i];
+    sum[8] += sum9[i];
   }
-
-  // printf("jiiri:\n");
-  // for (int i=0; i<4; i++) {printf("%f ", sum[i]);}
-  // printf("\n");
 }
 
 void correlate(int ny, int nx, const float* data, float* result) {
@@ -83,14 +88,6 @@ void correlate(int ny, int nx, const float* data, float* result) {
   int nnx = std::ceil(nx/4.0);
   int xpad = nnx * 4.0 - nx;
   double4_t* X = double4_alloc(nnx*ny);
-
-  // std::cout << "\ndata: \n";
-  // for (int y=0; y<ny; y++) {
-  //   for (int x=0; x<nx; x++) {
-  //     printf("%f ", data[y*nx + x]);
-  //   }
-  // }
-  //   printf("\n");
 
   // Copy the data into double4_t array X
 #pragma omp parallel for
@@ -133,56 +130,39 @@ void correlate(int ny, int nx, const float* data, float* result) {
     }
   }
 
-  int asdf = std::floor(ny/bs)*bs;
+  int boundary = std::floor(ny/bs)*bs;
 #pragma omp parallel for schedule(static, 1)
-  for (int y=0; y<asdf; y+=bs) {
-    for (int x=y; x<asdf; x+=bs) {
+  for (int y=0; y<boundary; y+=bs) {
+    for (int x=y; x<boundary; x+=bs) {
 
       double4_t* v1 = &X[y*nnx];
       double4_t* v2 = &X[(y+1)*nnx];
-      double4_t* v3 = &X[x*nnx];
-      double4_t* v4 = &X[(x+1)*nnx];
+      double4_t* v3 = &X[(y+2)*nnx];
+      double4_t* v4 = &X[x*nnx];
+      double4_t* v5 = &X[(x+1)*nnx];
+      double4_t* v6 = &X[(x+2)*nnx];
 
-      double jiiri[4] = {0.0, 0.0, 0.0, 0.0};
-      dot_product2(v1, v2, v3, v4, nnx, jiiri);
+      double jiiri[bs*bs] = {0.0};
+      dot_product2(v1, v2, v3, v4, v5, v6,  nnx, jiiri);
 
       result[y*ny + x] = jiiri[0];
       result[y*ny + x+1] = jiiri[1];
-      result[(y+1)*ny + x] = jiiri[2];
-      result[(y+1)*ny + x+1] = jiiri[3];
-
-
-      // for (int i=asdf; i<ny; i++) {
-      // 	result[y*ny + i] = dot_product(&X[y*nnx], &X[i*nnx], nnx);
-      // }
-
-      // double4_t* v5;
-      // double4_t* v6;
-      // double4_t* v7;
-      // double4_t* v8;
-      // double4_t* v9;
-      // double4_t r = {0.0, 0.0, 0.0, 0.0};
-      //      int sz;
-      //double t = 0.0;
+      result[y*ny + x+2] = jiiri[2];
+      result[(y+1)*ny + x] = jiiri[3];
+      result[(y+1)*ny + x+1] = jiiri[4];
+      result[(y+1)*ny + x+2] = jiiri[5];
+      result[(y+2)*ny + x] = jiiri[6];
+      result[(y+2)*ny + x+1] = jiiri[7];
+      result[(y+2)*ny + x+2] = jiiri[8];
     }
   }
 
   for (int j=0; j<ny; j++) {
     double4_t* v1 = &X[j*nnx];
     double4_t* v2;
-    for (int i=std::floor(ny/bs)*bs; i<ny; i++) {
+    for (int i=boundary; i<ny; i++) {
       v2 = &X[i*nnx];
       result[j*ny + i] = dot_product(v1, v2, nnx);
     }
   }
-
-  // printf("result:\n");
-  // for (int j=0; j<ny; j++) {
-  //   for (int i=0; i<j; i++) {printf("........ ");}
-  //   for (int i=j; i<ny; i++) {
-  //     printf("%f ", result[j*ny + i]);
-  //   }
-  //   printf("\n");
-  // }
-
 }
