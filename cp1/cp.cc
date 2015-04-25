@@ -46,7 +46,7 @@ void correlate(int ny, int nx, const float* data, float* result) {
     for (int x=y; x<ny; x++) {
 
       for (int i=0; i<nx; i++) {
-	result[y*ny + x] = X[x*nx + i] * X[y*nx + i];
+	result[y*ny + x] += X[x*nx + i] * X[y*nx + i];
       }
     }
   }
