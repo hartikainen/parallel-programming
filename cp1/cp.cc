@@ -22,9 +22,12 @@ double get_root_square_sum(double* row, int nx) {
 }
 
 void correlate(int ny, int nx, const float* data, float* result) {
-  double row_mean, row_rss;
-  double X[nx*ny];
+  double row_mean, row_rss, X[nx*ny];
 
+  // This for loop could be done faster by calculating the
+  // rss in the same for loop as where row_mean is deducted.
+  // However, this is much more readable and the speed up
+  // would only be linear w.r.t. nx
   for (int y=0; y<ny; y++) {
     row_mean = get_mean(&data[y*nx], nx);
 
