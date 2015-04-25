@@ -60,24 +60,6 @@ void correlate(int ny, int nx, const float* data, float* result) {
     }
   }
 
-  // std::cout << "\ndata: \n";
-  // for (int y=0; y<ny; y++) {
-  // 	for (int x=0; x<nx; x++) {
-  // 	    printf("%f ", data[y*nx + x]);
-  // 	}
-  // 	printf("\n");
-  // }
-
-  // std::cout << "\nX: \n";
-  // for (int y=0; y<ny; y++) {
-  // 	for (int x1=0; x1<nnx; x1++) {
-  // 	    for (int x2=0; x2<4; x2++) {
-  // 		printf("%f ", X[y*nnx + x1][x2]);
-  // 	    }
-  // 	}
-  // 	printf("\n");
-  // }
-
 #pragma omp parallel for
   for (int y=0; y<ny; y++) {
     double row_sum, row_mean, row_rss;
@@ -102,24 +84,18 @@ void correlate(int ny, int nx, const float* data, float* result) {
 
 #pragma omp parallel for schedule(static, 1)
   for (int y=0; y<ny; y++) {
-    //printf("\n\nrow incoming: \n\n");
     for (int x=y; x<ny; x++) {
       double4_t r = {0.0, 0.0, 0.0, 0.0};
-      double4_t* row1 = &X[y*nnx];
-      double4_t* row2 = &X[x*nnx];
+      double t = 0.0;
 
       for (int i=0; i<nnx; i++) {
-	//r += X[x*nnx + i] * X[y*nnx + i];
-	r += row1[i] * row2[i];
-
-	// for (int x2=0; x2<4; x2++) {
-	//   printf("row1: %f, row2: %f\n", row1[i][x2], row2[i][x2]);
-	// }
+	r += X[x*nnx + i] * X[y*nnx + i];
       }
-      double t = 0.0;
+
       for (int i=0; i<4; i++) {
 	t += r[i];
       }
+
       result[y*ny + x] = t;
     }
   }
