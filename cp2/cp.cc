@@ -22,33 +22,29 @@ double get_root_square_sum(double* row, int nx) {
 }
 
 void correlate(int ny, int nx, const float* data, float* result) {
-  double row_mean, row_rss, X[nx*ny];
+  double X[nx*ny];
 
-  // This for loop could be done faster by calculating the
-  // rss in the same for loop as where row_mean is deducted.
-  // However, this is much more readable and the speed up
-  // would only be linear w.r.t. nx
+  #pragma omp parallel for
   for (int y=0; y<ny; y++) {
-    row_mean = get_mean(&data[y*nx], nx);
+    double row_mean = get_mean(&data[y*nx], nx);
 
     for (int x=0; x<nx; x++) {
       X[y*nx + x] = ((double) data[y*nx + x]) - row_mean;
     }
 
-    row_rss = get_root_square_sum(&X[y*nx], nx);
+    double row_rss = get_root_square_sum(&X[y*nx], nx);
 
     for (int x=0; x<nx; x++) {
       X[y*nx + x] = X[y*nx + x] / row_rss;
     }
   }
 
-  double r, s;
+  #pragma omp parallel for
   for (int y=0; y<ny; y++) {
     for (int x=y; x<ny; x++) {
-      r=0;
+      double r = 0.0;
       for (int i=0; i<nx; i++) {
-	s = X[x*nx + i] * X[y*nx + i];
-	r += s;
+	r += X[x*nx + i] * X[y*nx + i];
       }
       result[y*ny + x] = r;
     }
