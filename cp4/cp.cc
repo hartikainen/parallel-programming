@@ -54,37 +54,66 @@ double dot_product(double4_t* v1, double4_t* v2, int len) {
   return sum;
 }
 
-void dot_product2(double4_t* v1, double4_t* v2, double4_t* v3, double4_t* v4, double4_t* v5, double4_t* v6, int len, double* sum) {
-  double4_t sum1 = {0.0, 0.0, 0.0, 0.0}, sum2 = {0.0, 0.0, 0.0, 0.0}, sum3 = {0.0, 0.0, 0.0, 0.0}, sum4 = {0.0, 0.0, 0.0, 0.0},
-            sum5 = {0.0, 0.0, 0.0, 0.0}, sum6 = {0.0, 0.0, 0.0, 0.0}, sum7 = {0.0, 0.0, 0.0, 0.0}, sum8 = {0.0, 0.0, 0.0, 0.0}, sum9 = {0.0, 0.0, 0.0, 0.0};
+void block_dot_product(double4_t** B1, double4_t** B2, float** B3, int block_size, int len) {
+  //  double4_t sum[block_size*block_size];
+  //double4_t sum4[block_size*block_size] = {0.0};
+  //  float tmp;
+  if (block_size){};
+  //double4_t tmp4;
+  //int bs = block_size;
+  constexpr int bs = BLOCK_SIZE;
+  // double4_t sum1 = {0.0, 0.0, 0.0, 0.0}, sum2 = {0.0, 0.0, 0.0, 0.0}, sum3 = {0.0, 0.0, 0.0, 0.0}, sum4 = {0.0, 0.0, 0.0, 0.0},
+  //           sum5 = {0.0, 0.0, 0.0, 0.0}, sum6 = {0.0, 0.0, 0.0, 0.0}, sum7 = {0.0, 0.0, 0.0, 0.0}, sum8 = {0.0, 0.0, 0.0, 0.0}, sum9 = {0.0, 0.0, 0.0, 0.0};
 
-  for (int i=0; i<len; i++) {
-    sum1 += v1[i] * v4[i];
-    sum2 += v1[i] * v5[i];
-    sum3 += v1[i] * v6[i];
-    sum4 += v2[i] * v4[i];
-    sum5 += v2[i] * v5[i];
-    sum6 += v2[i] * v6[i];
-    sum7 += v3[i] * v4[i];
-    sum8 += v3[i] * v5[i];
-    sum9 += v3[i] * v6[i];
+#pragma omp parallel for schedule(static, 1)
+  for (int n=0; n<len; n++) {
+    for (int j=0; j<bs; j++) {
+      for (int i=0; i<bs; i++) {
+
+	//tmp4 = B1[j][n] * B2[i][n];
+	for (int d=0; d<4; d++) {
+	  B3[j][i] += B1[j][n][d] * B2[i][n][d];
+	}
+
+      }
+    }
   }
 
-  for (int i=0; i<4; i++) {
-    sum[0] += sum1[i];
-    sum[1] += sum2[i];
-    sum[2] += sum3[i];
-    sum[3] += sum4[i];
-    sum[4] += sum5[i];
-    sum[5] += sum6[i];
-    sum[6] += sum7[i];
-    sum[7] += sum8[i];
-    sum[8] += sum9[i];
-  }
+  // for (int n=0; n<4; n++) {
+  //   for (int j=0; j<block_size; j++) {
+  //     for (int i=0; i<block_size; i++) {
+  // 	B3[j*block_size+i] += sum4[j*block_size+i][n];
+  //     }
+  //   }
+  // }
+
+  // for (int i=0; i<len; i++) {
+  //   sum1 += v1[i] * v4[i];
+  //   sum2 += v1[i] * v5[i];
+  //   sum3 += v1[i] * v6[i];
+  //   sum4 += v2[i] * v4[i];
+  //   sum5 += v2[i] * v5[i];
+  //   sum6 += v2[i] * v6[i];
+  //   sum7 += v3[i] * v4[i];
+  //   sum8 += v3[i] * v5[i];
+  //   sum9 += v3[i] * v6[i];
+  // }
+
+  // for (int i=0; i<4; i++) {
+  //   sum[0] += sum1[i];
+  //   sum[1] += sum2[i];
+  //   sum[2] += sum3[i];
+  //   sum[3] += sum4[i];
+  //   sum[4] += sum5[i];
+  //   sum[5] += sum6[i];
+  //   sum[6] += sum7[i];
+  //   sum[7] += sum8[i];
+  //   sum[8] += sum9[i];
+  // }
 }
 
 void correlate(int ny, int nx, const float* data, float* result) {
-  int bs = BLOCK_SIZE;
+  constexpr int bs = BLOCK_SIZE;
   int nnx = std::ceil(nx/4.0);
   int xpad = nnx * 4.0 - nx;
   double4_t* X = double4_alloc(nnx*ny);
@@ -135,34 +164,51 @@ void correlate(int ny, int nx, const float* data, float* result) {
   for (int y=0; y<boundary; y+=bs) {
     for (int x=y; x<boundary; x+=bs) {
 
-      double4_t* v1 = &X[y*nnx];
-      double4_t* v2 = &X[(y+1)*nnx];
-      double4_t* v3 = &X[(y+2)*nnx];
-      double4_t* v4 = &X[x*nnx];
-      double4_t* v5 = &X[(x+1)*nnx];
-      double4_t* v6 = &X[(x+2)*nnx];
+      double4_t* B1[bs];
+      double4_t* B2[bs];
+      float* B3[bs];
 
-      double jiiri[bs*bs] = {0.0};
-      dot_product2(v1, v2, v3, v4, v5, v6,  nnx, jiiri);
+      for (int i=0; i<bs; i++) {
+	B1[i] = &X[(y+i)*nnx];
+	B2[i] = &X[(x+i)*nnx];
+	B3[i] = &result[(y+i)*ny + x];
+      }
 
-      result[y*ny + x] = jiiri[0];
-      result[y*ny + x+1] = jiiri[1];
-      result[y*ny + x+2] = jiiri[2];
-      result[(y+1)*ny + x] = jiiri[3];
-      result[(y+1)*ny + x+1] = jiiri[4];
-      result[(y+1)*ny + x+2] = jiiri[5];
-      result[(y+2)*ny + x] = jiiri[6];
-      result[(y+2)*ny + x+1] = jiiri[7];
-      result[(y+2)*ny + x+2] = jiiri[8];
+      // double4_t* v1 = &X[y*nnx];
+      // double4_t* v2 = &X[(y+1)*nnx];
+      // double4_t* v3 = &X[(y+2)*nnx];
+      // double4_t* v4 = &X[x*nnx];
+      // double4_t* v5 = &X[(x+1)*nnx];
+      // double4_t* v6 = &X[(x+2)*nnx];
+
+      // double jiiri[bs*bs] = {0.0};
+
+      block_dot_product(B1, B2, B3, bs, nnx);
+
+      // for (int j=0; j<bs; j++) {
+      // 	for (int i=0; i<bs; i++) {
+      // 	  result[(y+j)*ny + (x+i)] = (float)B3[j*bs + i];
+      // 	}
+      // }
+
+      // result[y*ny + x] = jiiri[0];
+      // result[y*ny + x+1] = jiiri[1];
+      // result[y*ny + x+2] = jiiri[2];
+      // result[(y+1)*ny + x] = jiiri[3];
+      // result[(y+1)*ny + x+1] = jiiri[4];
+      // result[(y+1)*ny + x+2] = jiiri[5];
+      // result[(y+2)*ny + x] = jiiri[6];
+      // result[(y+2)*ny + x+1] = jiiri[7];
+      // result[(y+2)*ny + x+2] = jiiri[8];
     }
   }
 
-  for (int j=0; j<ny; j++) {
-    double4_t* v1 = &X[j*nnx];
-    double4_t* v2;
-    for (int i=boundary; i<ny; i++) {
-      v2 = &X[i*nnx];
-      result[j*ny + i] = dot_product(v1, v2, nnx);
-    }
-  }
+  // for (int j=0; j<ny; j++) {
+  //   double4_t* v1 = &X[j*nnx];
+  //   double4_t* v2;
+  //   for (int i=boundary; i<ny; i++) {
+  //     v2 = &X[i*nnx];
+  //     result[j*ny + i] = dot_product(v1, v2, nnx);
+  //   }
+  // }
 }
