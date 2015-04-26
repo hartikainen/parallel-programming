@@ -1,205 +1,36 @@
-g++-4.9 -g -std=c++11 -Wall -Wextra -Werror -Wno-error=unused-parameter -Wno-error=unused-function -Wno-error=unknown-pragmas -march=native  -O3 -fopenmp   -c -o pngcorrelate.o pngcorrelate.cc
-g++-4.9 -g -std=c++11 -Wall -Wextra -Werror -Wno-error=unused-parameter -Wno-error=unused-function -Wno-error=unknown-pragmas -march=native  -O3 -fopenmp   -c -o cp.o cp.cc
-g++-4.9 -g -std=c++11 -Wall -Wextra -Werror -Wno-error=unused-parameter -Wno-error=unused-function -Wno-error=unknown-pragmas -march=native  -O3 -fopenmp   -c -o pngio.o pngio.cc
-g++-4.9 -g -std=c++11 -Wall -Wextra -Werror -Wno-error=unused-parameter -Wno-error=unused-function -Wno-error=unknown-pragmas -march=native  -O3 -fopenmp   -c -o error.o error.cc
-g++-4.9 -g -std=c++11 -Wall -Wextra -Werror -Wno-error=unused-parameter -Wno-error=unused-function -Wno-error=unknown-pragmas -march=native  -O3 -fopenmp   -c -o vector.o vector.cc
-g++-4.9 -fopenmp pngcorrelate.o cp.o pngio.o error.o vector.o -lpng -o pngcorrelate
-g++-4.9 -g -std=c++11 -Wall -Wextra -Werror -Wno-error=unused-parameter -Wno-error=unused-function -Wno-error=unknown-pragmas -march=native  -O3 -fopenmp   -c -o cp-test.o cp-test.cc
-g++-4.9 -fopenmp cp-test.o cp.o error.o vector.o -o cp-test
-g++-4.9 -g -std=c++11 -Wall -Wextra -Werror -Wno-error=unused-parameter -Wno-error=unused-function -Wno-error=unknown-pragmas -march=native  -O3 -fopenmp   -c -o cp-benchmark.o cp-benchmark.cc
-g++-4.9 -fopenmp cp-benchmark.o cp.o error.o vector.o -o cp-benchmark
-OMP_NUM_THREADS=1
-
-cp	1	1	0.000
-cp	1	10	0.000
-cp	1	100	0.000
-cp	1	1000	0.000
-cp	1	2000	0.000
-cp	1	4000	0.000
-cp	10	1	0.000
-cp	10	10	0.000
-cp	10	100	0.000
-cp	10	1000	0.000
-cp	10	2000	0.000
-cp	10	4000	0.001
-cp	100	1	0.000
-cp	100	10	0.000
-cp	100	100	0.000
-cp	100	1000	0.002
-cp	100	2000	0.005
-cp	100	4000	0.010
-cp	1000	1	0.003
-cp	1000	10	0.003
-cp	1000	100	0.007
-cp	1000	1000	0.068
-cp	1000	2000	0.151
-cp	1000	4000	0.353
-cp	2000	1	0.011
-cp	2000	10	0.020
-cp	2000	100	0.029
-cp	2000	1000	0.305
-cp	2000	2000	0.654
-cp	2000	4000	1.404
-cp	4000	1	0.042
-cp	4000	10	0.048
-cp	4000	100	0.114
-cp	4000	1000	1.341
-cp	4000	2000	2.656
-cp	4000	4000	5.490
-
-OMP_NUM_THREADS=2
-
-cp	1	1	0.000
-cp	1	10	0.000
-cp	1	100	0.000
-cp	1	1000	0.000
-cp	1	2000	0.000
-cp	1	4000	0.000
-cp	10	1	0.000
-cp	10	10	0.000
-cp	10	100	0.000
-cp	10	1000	0.000
-cp	10	2000	0.000
-cp	10	4000	0.000
-cp	100	1	0.000
-cp	100	10	0.000
-cp	100	100	0.000
-cp	100	1000	0.001
-cp	100	2000	0.003
-cp	100	4000	0.005
-cp	1000	1	0.003
-cp	1000	10	0.003
-cp	1000	100	0.008
-cp	1000	1000	0.035
-cp	1000	2000	0.084
-cp	1000	4000	0.185
-cp	2000	1	0.006
-cp	2000	10	0.006
-cp	2000	100	0.015
-cp	2000	1000	0.168
-cp	2000	2000	0.354
-cp	2000	4000	0.724
-cp	4000	1	0.021
-cp	4000	10	0.024
-cp	4000	100	0.058
-cp	4000	1000	0.712
-cp	4000	2000	1.405
-cp	4000	4000	2.836
-
-OMP_NUM_THREADS=4
-
-cp	1	1	0.000
-cp	1	10	0.000
-cp	1	100	0.000
-cp	1	1000	0.000
-cp	1	2000	0.000
-cp	1	4000	0.000
-cp	10	1	0.001
-cp	10	10	0.000
-cp	10	100	0.000
-cp	10	1000	0.000
-cp	10	2000	0.000
-cp	10	4000	0.000
-cp	100	1	0.000
-cp	100	10	0.000
-cp	100	100	0.000
-cp	100	1000	0.001
-cp	100	2000	0.002
-cp	100	4000	0.003
-cp	1000	1	0.001
-cp	1000	10	0.001
-cp	1000	100	0.002
-cp	1000	1000	0.021
-cp	1000	2000	0.046
-cp	1000	4000	0.098
-cp	2000	1	0.004
-cp	2000	10	0.003
-cp	2000	100	0.008
-cp	2000	1000	0.090
-cp	2000	2000	0.188
-cp	2000	4000	0.390
-cp	4000	1	0.011
-cp	4000	10	0.013
-cp	4000	100	0.032
-cp	4000	1000	0.376
-cp	4000	2000	0.742
-cp	4000	4000	1.465
-
-OMP_NUM_THREADS=8
-
-cp	1	1	0.000
-cp	1	10	0.000
-cp	1	100	0.000
-cp	1	1000	0.000
-cp	1	2000	0.000
-cp	1	4000	0.000
-cp	10	1	0.000
-cp	10	10	0.000
-cp	10	100	0.000
-cp	10	1000	0.000
-cp	10	2000	0.000
-cp	10	4000	0.001
-cp	100	1	0.000
-cp	100	10	0.000
-cp	100	100	0.000
-cp	100	1000	0.001
-cp	100	2000	0.002
-cp	100	4000	0.003
-cp	1000	1	0.001
-cp	1000	10	0.002
-cp	1000	100	0.005
-cp	1000	1000	0.020
-cp	1000	2000	0.039
-cp	1000	4000	0.078
-cp	2000	1	0.003
-cp	2000	10	0.003
-cp	2000	100	0.008
-cp	2000	1000	0.073
-cp	2000	2000	0.143
-cp	2000	4000	0.341
-cp	4000	1	0.009
-cp	4000	10	0.011
-cp	4000	100	0.030
-cp	4000	1000	0.309
-cp	4000	2000	0.635
-cp	4000	4000	1.782
-
-DEFAULT
-
-cp	1	1	0.000
-cp	1	10	0.000
-cp	1	100	0.000
-cp	1	1000	0.000
-cp	1	2000	0.000
-cp	1	4000	0.000
-cp	10	1	0.000
-cp	10	10	0.000
-cp	10	100	0.000
-cp	10	1000	0.000
-cp	10	2000	0.000
-cp	10	4000	0.000
-cp	100	1	0.000
-cp	100	10	0.000
-cp	100	100	0.000
-cp	100	1000	0.001
-cp	100	2000	0.002
-cp	100	4000	0.003
-cp	1000	1	0.001
-cp	1000	10	0.002
-cp	1000	100	0.005
-cp	1000	1000	0.018
-cp	1000	2000	0.038
-cp	1000	4000	0.084
-cp	2000	1	0.003
-cp	2000	10	0.003
-cp	2000	100	0.008
-cp	2000	1000	0.074
-cp	2000	2000	0.141
-cp	2000	4000	0.388
-cp	4000	1	0.012
-cp	4000	10	0.010
-cp	4000	100	0.030
-cp	4000	1000	0.305
-cp	4000	2000	0.629
-cp	4000	4000	1.892
-
+cp	1	1	0.000	1
+cp	1	10	0.000	1
+cp	1	100	0.000	1
+cp	1	1000	0.000	1
+cp	1	2000	0.000	1
+cp	1	4000	0.000	1
+cp	10	1	0.000	1
+cp	10	10	0.000	1
+cp	10	100	0.000	1
+cp	10	1000	0.000	1
+cp	10	2000	0.000	1
+cp	10	4000	0.001	1
+cp	100	1	0.000	1
+cp	100	10	0.000	1
+cp	100	100	0.000	1
+cp	100	1000	0.002	1
+cp	100	2000	0.005	1
+cp	100	4000	0.010	1
+cp	1000	1	0.003	1
+cp	1000	10	0.003	1
+cp	1000	100	0.007	1
+cp	1000	1000	0.068	1
+cp	1000	2000	0.151	1
+cp	1000	4000	0.353	1
+cp	2000	1	0.011	1
+cp	2000	10	0.020	1
+cp	2000	100	0.029	1
+cp	2000	1000	0.305	1
+cp	2000	2000	0.654	1
+cp	2000	4000	1.404	1
+cp	4000	1	0.042	1
+cp	4000	10	0.048	1
+cp	4000	100	0.114	1
+cp	4000	1000	1.341	1
+cp	4000	2000	2.656	1
+cp	4000	4000	5.490	1
