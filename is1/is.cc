@@ -27,8 +27,9 @@
 // Examples of a sufficient performance with classroom computers:
 //   nx = ny = 400: roughly 10 seconds
 
-void print_data(int ny, int nx, const float* data) {
-  printf("\nnx: %d, ny: %d\n", nx, ny);
+void print_data(int ny, int nx, const float* data, double4_t* cdata) {
+  printf("\n\nINITIAL DATA:\n");
+  printf("nx: %d, ny: %d\n", nx, ny);
   for (int y=0; y<ny; y++) {
     for (int x=0; x<nx; x++) {
       printf("{");
@@ -41,10 +42,33 @@ void print_data(int ny, int nx, const float* data) {
     printf("\n");
   }
   printf("\n");
+  printf("\nVECTORIZED DATA\n");
+  for (int y=0; y<ny; y++) {
+    for (int x=0; x<nx; x++) {
+      printf("{");
+      for (int c=0; c<4; c++) {
+	printf("%f", cdata[y*nx + x][c]);
+	if (c<3) printf(",");
+      }
+      printf("}");
+    }
+    printf("\n");
+  }
+  printf("END OF DATA PRINT:\n");
 }
 
 Result segment(int ny, int nx, const float* data) {
-  print_data(ny, nx, data);
+  double4_t cdata[ny*nx];
+
+  for (int y=0; y<ny; y++) {
+    for (int x=0; x<nx; x++) {
+      for (int c=0; c<3; c++) {
+	cdata[y*nx + x][c] = data[c + 3 * x + 3 * nx * y];
+      }
+    }
+  }
+
+  print_data(ny, nx, data, cdata);
 
   Result result { ny/3, nx/3, 2*ny/3, 2*nx/3, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f} };
   return result;
