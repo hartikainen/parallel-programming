@@ -111,15 +111,20 @@ Result segment(int ny, int nx, const float* data) {
   print_data(ny, nx, data, cdata);
   printf("vPc=%f", vPc);
 
-  for (int y1=0; y1<=ny; y1++) {
-    for (int x1=0; x1<=nx; x1++) {
-      double4_t v4 = {0.0};
-      for (int j=0; j<=ny-y1; j++) {
-	for (int i=0; i<=nx-x1; i++) {
-	  v4 += cdata[j * ny + i];
-	}
-      }
-      S00[y1*nx + x1] = d4tod(v4);;
+
+  // Initialize the borders (x=0 and y=0) for the
+  // color sum matrix. Then we can dynamically calculate
+  // the other sums.
+  for (int x1=0; x1<nx; x1++) {
+    S00[x1] = d4tod(cdata[x1]) + S00[x1-1];
+  }
+  for (int y1=0; y1<ny; y1++) {
+    S00[y1*nx] = d4tod(cdata[y1*nx]) + S00[(y1-1)*nx];
+  }
+
+  for (int y1=1; y1<ny; y1++) {
+    for (int x1=1; x1<nx; x1++) {
+      S00[y1*nx + x1] = d4tod(cdata[y1*nx + x1]) + S00[(y1-1)*nx + (x1)] + S00[y1*nx + (x1-1)] - S00[(y1-1)*nx + (x1-1)];
     }
   }
 
