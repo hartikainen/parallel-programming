@@ -11,8 +11,6 @@
 //   The total cost of the segmentation is the sum of squared errors, that is, the sum of error(y,x,c) * error(y,x,c) over all 0 <= c < 3 and 0 <= x < nx and 0 <= y < ny.
 
 
-
-
 // TASK IS1 Your task is to find a segmentation that minimises the total cost.
 
 // Implement an algorithm for image segmentation. You can use the naive algorithm that tries out all possible locations 0 <= y0 < y1 <= ny and 0 <= x0 < x1 <= nx for the rectangle and finds the best one.
@@ -26,6 +24,8 @@
 
 // Examples of a sufficient performance with classroom computers:
 //   nx = ny = 400: roughly 10 seconds
+
+#define d4tod(d4) d4[0]+d4[1]+d4[2]+d4[3]
 
 void print_data(int ny, int nx, const float* data, double4_t* cdata) {
   printf("\n\nINITIAL DATA:\n");
@@ -57,18 +57,74 @@ void print_data(int ny, int nx, const float* data, double4_t* cdata) {
   printf("END OF DATA PRINT:\n");
 }
 
-Result segment(int ny, int nx, const float* data) {
-  double4_t cdata[ny*nx];
-
+void printS00(int ny, int nx, double* S00) {
+  printf("\n\nS00:\n");
+  printf("nx: %d, ny: %d\n", nx, ny);
   for (int y=0; y<ny; y++) {
     for (int x=0; x<nx; x++) {
-      for (int c=0; c<3; c++) {
-	cdata[y*nx + x][c] = data[c + 3 * x + 3 * nx * y];
-      }
+      printf("%f ", S00[y*nx + x]);
+    }
+    printf("\n");
+  }
+  printf("\n");
+  printf("END OF S00 PRINT:\n");
+}
+
+double error_fn(double4_t* X, int nyX, int nxX, double4_t* Y, int nyY, int nxY, int* size_y, double4_t a, double4_t b) {
+  // double4_t sum4;
+  // double sum;
+
+
+  for (int y=0; y<nyX; y++) {
+    for (int x=0; x<nxX; x++) {
+
     }
   }
 
+  for (int y=0; y<nyY; y++) {
+    for (int x=0; x<nxY; x++) {
+
+    }
+  }
+
+  return 0.0;
+}
+
+Result segment(int ny, int nx, const float* data) {
+  double4_t cdata[ny*nx];
+  double4_t vPc4 = {0};
+  double vPc = 0;
+  double S00[ny*nx];
+
+  for (int y=0; y<ny; y++) {
+    for (int x=0; x<nx; x++) {
+      int idx = nx * y + x;
+      for (int c=0; c<3; c++) {
+	cdata[idx][c] = data[c + 3*idx];
+      }
+      vPc4 += cdata[idx];
+    }
+  }
+
+  vPc = d4tod(vPc4);
+
   print_data(ny, nx, data, cdata);
+  printf("vPc=%f", vPc);
+
+  for (int y1=0; y1<=ny; y1++) {
+    for (int x1=0; x1<=nx; x1++) {
+      double4_t v4 = {0.0};
+      for (int j=0; j<=ny-y1; j++) {
+	for (int i=0; i<=nx-x1; i++) {
+	  v4 += cdata[j * ny + i];
+	}
+      }
+      S00[y1*nx + x1] = d4tod(v4);;
+    }
+  }
+
+  printS00(ny, nx, S00);
+
 
   Result result { ny/3, nx/3, 2*ny/3, 2*nx/3, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f} };
   return result;
