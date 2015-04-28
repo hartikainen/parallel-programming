@@ -30,10 +30,10 @@
 Result segment(int ny, int nx, const float* data) {
   int size = nx * ny; // size of the whole image
   double4_t cdata[size] = {0.0}; // vectorized data
-  double4_t vPc4 = {0};
+  double4_t vPc4 = {0.0};
 
-  double vXc, vYc, hXY, vPc = 0, max_hXY = 0;
-  double S00[(ny+1)*(nx+1)] = {0};
+  double vXc, vYc, hXY, vPc = 0.0, max_hXY = 0.0;
+  double S00[(ny+1)*(nx+1)] = {0.0};
 
   int ry0=0, rx0=0, ry1=1, rx1=1; // return coordinates
   double4_t rXc = {0.0}, rYc = {0.0}; // return colors
