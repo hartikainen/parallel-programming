@@ -27,49 +27,6 @@
 
 #define d4tod(d4) d4[0]+d4[1]+d4[2]+d4[3]
 
-void print_data(int ny, int nx, const float* data, double4_t* cdata) {
-  printf("\n\nINITIAL DATA:\n");
-  printf("nx: %d, ny: %d\n", nx, ny);
-  for (int y=0; y<ny; y++) {
-    for (int x=0; x<nx; x++) {
-      printf("{");
-      for (int c=0; c<3; c++) {
-	printf("%f", data[c + 3 * x + 3 * nx * y]);
-	if (c<2) printf(",");
-      }
-      printf("}");
-    }
-    printf("\n");
-  }
-  printf("\n");
-  printf("\nVECTORIZED DATA\n");
-  for (int y=0; y<ny; y++) {
-    for (int x=0; x<nx; x++) {
-      printf("{");
-      for (int c=0; c<4; c++) {
-	printf("%f", cdata[y*nx + x][c]);
-	if (c<3) printf(",");
-      }
-      printf("}");
-    }
-    printf("\n");
-  }
-  printf("END OF DATA PRINT:\n");
-}
-
-void printS00(int ny, int nx, double* S00) {
-  printf("\n\nS00:\n");
-  printf("nx: %d, ny: %d\n", nx, ny);
-  for (int y=0; y<ny; y++) {
-    for (int x=0; x<nx; x++) {
-      printf("%f ", S00[y*nx + x]);
-    }
-    printf("\n");
-  }
-  printf("\n");
-  printf("END OF S00 PRINT:\n");
-}
-
 Result segment(int ny, int nx, const float* data) {
   int size = nx * ny; // size of the whole image
   double4_t cdata[size] = {0.0}; // vectorized data
@@ -93,8 +50,6 @@ Result segment(int ny, int nx, const float* data) {
   }
 
   vPc = d4tod(vPc4);
-
-  print_data(ny, nx, data, cdata);
 
   // The borders (x=0 and y=0) for the color sum matrix
   // are 0. Thus we can dynamically calculate the other sums.
@@ -140,47 +95,32 @@ Result segment(int ny, int nx, const float* data) {
     }
   }
 
-  printf("ry0: %d\n", ry0);
-  printf("rx0: %d\n", rx0);
-  printf("rx1: %d\n", rx1);
-  printf("ry1: %d\n", ry1);
-
   for (int y=0; y<ry0; y++) {
     for (int x=0; x<nx; x++) {
       rYc += cdata[y*nx + x];
-      printf("\nshould be here only once1\n");
     }
   }
-  printf("\n");
   for (int y=ry0; y<ry1; y++) {
     for (int x=0; x<rx0; x++) {
-      printf("\nshouldn't be here\n");
       rYc += cdata[y*nx + x];
     }
     for (int x=rx0; x<rx1; x++) {
-      printf("\nshould be here only once2\n");
       rXc += cdata[y*nx + x];
     }
     for (int x=rx1; x<nx; x++) {
-      printf("\nshouldn't be here\n");
       rYc += cdata[y*nx + x];
     }
   }
 
   for (int y=ry1; y<ny; y++) {
     for (int x=0; x<nx; x++) {
-      printf("\nshould be here only once3\n");
       rYc += cdata[y*nx + x];
     }
   }
 
   int sizeX = (ry1-ry0) * (rx1-rx0);
-  printf("sizeX: %d", sizeX);
-  printf("sizeY: %d", size - sizeX);
   rXc /= sizeX;
   rYc /= size - sizeX;
-  printf("rectangle color: {%f, %f, %f}", rXc[0], rXc[1], rXc[2]);
-  printf("border color: {%f, %f, %f}", rYc[0], rYc[1], rYc[2]);
 
   result.y0 = ry0;
   result.x0 = rx0;
