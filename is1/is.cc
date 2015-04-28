@@ -70,31 +70,15 @@ void printS00(int ny, int nx, double* S00) {
   printf("END OF S00 PRINT:\n");
 }
 
-double error_fn(double4_t* X, int nyX, int nxX, double4_t* Y, int nyY, int nxY, int* size_y, double4_t a, double4_t b) {
-  // double4_t sum4;
-  // double sum;
-
-
-  for (int y=0; y<nyX; y++) {
-    for (int x=0; x<nxX; x++) {
-
-    }
-  }
-
-  for (int y=0; y<nyY; y++) {
-    for (int x=0; x<nxY; x++) {
-
-    }
-  }
-
-  return 0.0;
-}
-
 Result segment(int ny, int nx, const float* data) {
+  int miny0, miny1, minx0, minx1;
+  int size = nx * ny;
   double4_t cdata[ny*nx];
   double4_t vPc4 = {0};
   double vPc = 0;
+  double vXc, vYc;
   double S00[ny*nx];
+  double hXY = 0.0, temp_hXY;
 
   for (int y=0; y<ny; y++) {
     for (int x=0; x<nx; x++) {
@@ -108,6 +92,7 @@ Result segment(int ny, int nx, const float* data) {
 
   vPc = d4tod(vPc4);
 
+  // TODO: remove
   print_data(ny, nx, data, cdata);
   printf("vPc=%f", vPc);
 
@@ -115,6 +100,7 @@ Result segment(int ny, int nx, const float* data) {
   // Initialize the borders (x=0 and y=0) for the
   // color sum matrix. Then we can dynamically calculate
   // the other sums.
+  S00[0] = d4tod(cdata[0]);
   for (int x1=0; x1<nx; x1++) {
     S00[x1] = d4tod(cdata[x1]) + S00[x1-1];
   }
@@ -128,7 +114,41 @@ Result segment(int ny, int nx, const float* data) {
     }
   }
 
+  // TODO: remove
   printS00(ny, nx, S00);
+
+  for (int h=1; h<=ny; h++) {
+    for (int w=1; w<=nx; w++) {
+      printf("h=%d, w=%d: ", h, w);
+      int sizeX = h * w;
+      int sizeY = size - sizeX;
+
+      for (int y0=0; y0<=ny-h; y0++) {
+	for (int x0=0; x0<=nx-w; x0++) {
+	  int y1 = y0 + h;
+	  int x1 = x0 + w;
+	  vXc = S00[y1*nx + x1]
+	      - S00[y1*nx + x0]
+	      - S00[y0*nx + x1]
+	      + S00[y0*nx + x0];
+	  vYc = vPc - vXc;
+	  temp_hXY = ((vXc*vXc) / sizeX) + ((vYc*vYc) / sizeY);
+	  // printf(" temp_hXY: %f", temp_hXY);
+	  printf("y0: %d, x0: %d, y1: %d, x1: %d, hXy: %f, vXc: %f, vYc: %f --  ", y0, x0, y1, x1, temp_hXY, vXc, vYc);
+
+	  if (temp_hXY > hXY) {
+	    hXY = temp_hXY;
+	    miny0 = y0; miny1 = y1; minx0 = x0; minx1 = x1;
+	    // printf("\ninside if\n");
+	    // printf("x0: %d, y0: %d, w: %d, h: %d, hXY: %f\n", x0, y0, w, h, hXY);
+	  }
+	}
+      }
+    }
+    printf("\n");
+  }
+
+  printf("RESULT -> minx0: %d, miny0: %d, minx1: %d, miny1: %d, minhXY: %f\n", minx0, miny0, minx1, miny1, hXY);
 
 
   Result result { ny/3, nx/3, 2*ny/3, 2*nx/3, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f} };
