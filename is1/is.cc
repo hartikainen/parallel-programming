@@ -78,6 +78,7 @@ Result segment(int ny, int nx, const float* data) {
   double vXc, vYc;
   double S00[(ny+1)*(nx+1)] = {0};
   double hXY = 0.0, temp_hXY;
+  Result result;
 
   for (int y=0; y<ny; y++) {
     for (int x=0; x<nx; x++) {
@@ -91,11 +92,6 @@ Result segment(int ny, int nx, const float* data) {
 
   vPc = d4tod(vPc4);
 
-  // TODO: remove
-  print_data(ny, nx, data, cdata);
-  printf("vPc=%f", vPc);
-
-
   // The borders (x=0 and y=0) for the color sum matrix
   // are 0. Thus we can dynamically calculate the other sums.
   for (int y1=0; y1<ny; y1++) {
@@ -107,27 +103,26 @@ Result segment(int ny, int nx, const float* data) {
     }
   }
 
-  // TODO: remove
-  printS00(ny+1, nx+1, S00);
-  Result result;
-
+#pragma omp parallel for schedule(static, 1)
   for (int h=1; h<=ny; h++) {
     for (int w=1; w<=nx; w++) {
-      printf("h=%d, w=%d: ", h, w);
       int sizeX = h * w;
       int sizeY = size - sizeX;
+      double divX = 1.0/sizeX;
+      double divY = 1.0/sizeY;
 
       for (int y0=0; y0<=ny-h; y0++) {
 	for (int x0=0; x0<=nx-w; x0++) {
 	  int y1 = y0 + h;
 	  int x1 = x0 + w;
 	  vXc = S00[y1*(nx+1) + x1]
-	    - S00[y1*(nx+1) + x0]
-	    - S00[y0*(nx+1) + x1]
-	    + S00[y0*(nx+1) + x0];
+	      - S00[y1*(nx+1) + x0]
+	      - S00[y0*(nx+1) + x1]
+	      + S00[y0*(nx+1) + x0];
 	  vYc = vPc - vXc;
-	  temp_hXY = ((vXc*vXc) / sizeX) + ((vYc*vYc) / sizeY);
-	  printf("y0: %d, x0: %d, y1: %d, x1: %d, hXY: %f, vXc: %f, vYc: %f --  ", y0, x0, y1, x1, temp_hXY, vXc, vYc);
+	  double tmpX = vXc * vXc * divX;
+	  double tmpY = vYc * vYc * divY;
+	  temp_hXY = tmpX + tmpY;//((vXc*vXc) * divX) + ((vYc*vYc) * divY);
 
 	  if (temp_hXY > hXY) {
 	    hXY = temp_hXY;
@@ -137,7 +132,6 @@ Result segment(int ny, int nx, const float* data) {
 	}
       }
     }
-    printf("\n");
   }
 
   //Result result; { ny/3, nx/3, 2*ny/3, 2*nx/3, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f} };
