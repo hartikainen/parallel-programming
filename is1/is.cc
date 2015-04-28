@@ -72,7 +72,7 @@ void printS00(int ny, int nx, double* S00) {
 
 Result segment(int ny, int nx, const float* data) {
   int size = nx * ny; // size of the whole image
-  double4_t cdata[size]; // vectorized data
+  double4_t cdata[size] = {0.0}; // vectorized data
   double4_t vPc4 = {0};
 
   double vXc, vYc, hXY, vPc = 0, max_hXY = 0;
