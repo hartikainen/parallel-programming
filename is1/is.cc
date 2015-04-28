@@ -71,18 +71,17 @@ void printS00(int ny, int nx, double* S00) {
 }
 
 Result segment(int ny, int nx, const float* data) {
-  int miny0, miny1, minx0, minx1;
   int size = nx * ny;
   double4_t cdata[ny*nx];
   double4_t vPc4 = {0};
   double vPc = 0;
   double vXc, vYc;
-  double S00[ny*nx];
+  double S00[(ny+1)*(nx+1)] = {0};
   double hXY = 0.0, temp_hXY;
 
   for (int y=0; y<ny; y++) {
     for (int x=0; x<nx; x++) {
-      int idx = nx * y + x;
+      int idx = y*nx + x;
       for (int c=0; c<3; c++) {
 	cdata[idx][c] = data[c + 3*idx];
       }
@@ -97,25 +96,20 @@ Result segment(int ny, int nx, const float* data) {
   printf("vPc=%f", vPc);
 
 
-  // Initialize the borders (x=0 and y=0) for the
-  // color sum matrix. Then we can dynamically calculate
-  // the other sums.
-  S00[0] = d4tod(cdata[0]);
-  for (int x1=0; x1<nx; x1++) {
-    S00[x1] = d4tod(cdata[x1]) + S00[x1-1];
-  }
+  // The borders (x=0 and y=0) for the color sum matrix
+  // are 0. Thus we can dynamically calculate the other sums.
   for (int y1=0; y1<ny; y1++) {
-    S00[y1*nx] = d4tod(cdata[y1*nx]) + S00[(y1-1)*nx];
-  }
-
-  for (int y1=1; y1<ny; y1++) {
-    for (int x1=1; x1<nx; x1++) {
-      S00[y1*nx + x1] = d4tod(cdata[y1*nx + x1]) + S00[(y1-1)*nx + (x1)] + S00[y1*nx + (x1-1)] - S00[(y1-1)*nx + (x1-1)];
+    for (int x1=0; x1<nx; x1++) {
+      S00[(y1+1)*(nx+1) + (x1+1)] = d4tod(cdata[y1*nx + x1])
+                                  + S00[y1*(nx+1) + (x1+1)]
+ 	                          + S00[(y1+1)*(nx+1) + x1]
+                                  - S00[y1*(nx+1) + x1];
     }
   }
 
   // TODO: remove
-  printS00(ny, nx, S00);
+  printS00(ny+1, nx+1, S00);
+  Result result;
 
   for (int h=1; h<=ny; h++) {
     for (int w=1; w<=nx; w++) {
@@ -127,20 +121,18 @@ Result segment(int ny, int nx, const float* data) {
 	for (int x0=0; x0<=nx-w; x0++) {
 	  int y1 = y0 + h;
 	  int x1 = x0 + w;
-	  vXc = S00[y1*nx + x1]
-	      - S00[y1*nx + x0]
-	      - S00[y0*nx + x1]
-	      + S00[y0*nx + x0];
+	  vXc = S00[y1*(nx+1) + x1]
+	    - S00[y1*(nx+1) + x0]
+	    - S00[y0*(nx+1) + x1]
+	    + S00[y0*(nx+1) + x0];
 	  vYc = vPc - vXc;
 	  temp_hXY = ((vXc*vXc) / sizeX) + ((vYc*vYc) / sizeY);
-	  // printf(" temp_hXY: %f", temp_hXY);
-	  printf("y0: %d, x0: %d, y1: %d, x1: %d, hXy: %f, vXc: %f, vYc: %f --  ", y0, x0, y1, x1, temp_hXY, vXc, vYc);
+	  printf("y0: %d, x0: %d, y1: %d, x1: %d, hXY: %f, vXc: %f, vYc: %f --  ", y0, x0, y1, x1, temp_hXY, vXc, vYc);
 
 	  if (temp_hXY > hXY) {
 	    hXY = temp_hXY;
-	    miny0 = y0; miny1 = y1; minx0 = x0; minx1 = x1;
-	    // printf("\ninside if\n");
-	    // printf("x0: %d, y0: %d, w: %d, h: %d, hXY: %f\n", x0, y0, w, h, hXY);
+	    Result r = {y0, x0, y1, x1, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}};
+	    result = r;
 	  }
 	}
       }
@@ -148,9 +140,6 @@ Result segment(int ny, int nx, const float* data) {
     printf("\n");
   }
 
-  printf("RESULT -> minx0: %d, miny0: %d, minx1: %d, miny1: %d, minhXY: %f\n", minx0, miny0, minx1, miny1, hXY);
-
-
-  Result result { ny/3, nx/3, 2*ny/3, 2*nx/3, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f} };
+  //Result result; { ny/3, nx/3, 2*ny/3, 2*nx/3, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f} };
   return result;
 }
