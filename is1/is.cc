@@ -20,7 +20,7 @@ Result segment(int ny, int nx, const float* data) {
   double4_t rXc = {0.0}, rYc = {0.0}; // return colors
   Result result { ny/3, nx/3, 2*ny/3, 2*nx/3, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f} };
 
-#pragma omp for schedule(dynamic)
+#pragma omp for schedule(static)
   for (int y=0; y<ny; y++) {
     for (int x=0; x<nx; x++) {
       int idx = y*nx + x;
@@ -49,7 +49,7 @@ Result segment(int ny, int nx, const float* data) {
   double sizeX, sizeY, divX, divY, hXY, max_hXY = -1;
   int tx0 = 0, ty0 = 0, tx1 = 1, ty1 = 1;
 
-#pragma omp for schedule(dynamic)
+  #pragma omp for schedule(static)
   for (int h=1; h<=ny; h++) {
     for (int w=1; w<=nx; w++) {
       sizeX = (double)h * (double)w;
