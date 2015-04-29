@@ -33,9 +33,9 @@ void print_blocks(data_t** blocks, int bs, int p, int n) {
 }
 
 void merge_blocks(data_t* b1, data_t* b2, int n1, int n2) {
-  printf("\nmerging arrays: \n");
-  for (int i=0; i<n1; i++) std::cout << b1[i] << " "; std::cout << "\n";
-  for (int i=0; i<n2; i++) std::cout << b2[i] << " "; std::cout << "\n\n\n";
+  // printf("\nmerging arrays: \n");
+  // for (int i=0; i<n1; i++) std::cout << b1[i] << " "; std::cout << "\n";
+  // for (int i=0; i<n2; i++) std::cout << b2[i] << " "; std::cout << "\n\n\n";
   data_t b3[n1];
   for (int n=0; n<n1; n++) {
     b3[n] = b1[n];
@@ -57,42 +57,48 @@ void psort(int n, data_t* data) {
     return;
   }
 
-  print_actual_data(data, n);
+  // print_actual_data(data, n);
 
-  int p = omp_get_max_threads();
-  int block_size = n / p;
-  int last_block_size = block_size + (n - block_size * p);
-  data_t* blocks[p];
+  int max_threads = omp_get_max_threads();
+  int block_size = n / max_threads;
+  int last_block_size = block_size + (n - block_size * max_threads);
+  data_t* blocks[max_threads];
 
-  for (int i=0; i<p; i++) {
+  for (int i=0; i<max_threads; i++) {
     blocks[i] = &data[i*block_size];
   }
 
-  printf("INITIAL BLOCK:\n\n");
-  print_blocks(blocks, block_size, p, n);
+  // printf("INITIAL BLOCK:\n\n");
+  // print_blocks(blocks, block_size, max_threads, n);
 
-#pragma omp parallel num_threads(p)
+#pragma omp parallel num_threads(max_threads)
 {
   int tn = omp_get_thread_num();
 
-  int bs = (tn < p-1) ? block_size : last_block_size;
+  int bs = (tn < max_threads-1) ? block_size : last_block_size;
   //  printf("On thread: %d, bs=%d\n", tn, bs);
   std::sort(blocks[tn], blocks[tn] + bs);
   #pragma omp barrier
 }
 
-#pragma omp parallel for
- for (int i=0; i<p; i+=2) {
-   int block_size2 = (i+1 == p-1) ? last_block_size : block_size;
-
-   merge_blocks(blocks[i], blocks[i+1], block_size, block_size2);
+  // Assuming that the thread count is a power of 2
+ int p = max_threads;
+ while (p > 1) {
+   for (int i=0; i<p; i+=2) {
+     int bs1 = n/p;
+     //printf("bs1: %d\n", bs1);
+     int bs2 = (i+1 == p-1) ? bs1 + (n - bs1*p) : bs1;
+     //printf("bs2: %d\n", bs2);
+     merge_blocks(&data[i*bs1], blocks[(i+1)*bs1], bs1, bs2);
+   }
+   p /= 2;
  }
 
 
   // TODO: handle the left overs if max threads % 2 != 0
 
-  printf("SORTED BLOCKS:\n\n");
-  print_blocks(blocks, block_size, p, n);
+  // printf("SORTED BLOCKS:\n\n");
+  // print_actual_data(data, n);
 
   // FIXME: make this more efficient with parallelism
   std::sort(data, data + n);
