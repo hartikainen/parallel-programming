@@ -54,7 +54,7 @@ Result segment(int ny, int nx, const float* data) {
 {
   double4_t hXY4, vYc, vXc;
   double sizeX, sizeY, divX, divY, hXY, max_hXY = -1;
-  int tx0 = 0, ty0 = 0, tx1 = 1, ty1 = 1;
+  int x1, y1, tx0 = 0, ty0 = 0, tx1 = 1, ty1 = 1;
 
   #pragma omp for schedule(static, 1)
   for (int h=1; h<=ny; h++) {
@@ -66,8 +66,8 @@ Result segment(int ny, int nx, const float* data) {
 
       for (int y0=0; y0<=ny-h; y0++) {
 	for (int x0=0; x0<=nx-w; x0++) {
-	  int y1 = y0 + h;
-	  int x1 = x0 + w;
+	  y1 = y0 + h;
+	  x1 = x0 + w;
 	  vXc = S00[y1*snx + x1]
 	      - S00[y1*snx + x0]
 	      - S00[y0*snx + x1]
@@ -85,6 +85,7 @@ Result segment(int ny, int nx, const float* data) {
 	  }
 	}
       }
+
     }
   }
 
