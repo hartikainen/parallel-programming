@@ -67,8 +67,8 @@ Result segment(int ny, int nx, const float* data) {
     for (int w=1; w<=nx; w++) {
       int sizeX = h * w;
       int sizeY = size - sizeX;
-      double divX = 1.0/sizeX;
-      double divY = 1.0/sizeY;
+      double divX = 1.0/(double)sizeX;
+      double divY = 1.0/(double)sizeY;
 
       for (int y0=0; y0<=ny-h; y0++) {
 	for (int x0=0; x0<=nx-w; x0++) {
@@ -111,7 +111,6 @@ Result segment(int ny, int nx, const float* data) {
       rYc += cdata[y*nx + x];
     }
   }
-
   for (int y=ry1; y<ny; y++) {
     for (int x=0; x<nx; x++) {
       rYc += cdata[y*nx + x];
@@ -119,8 +118,8 @@ Result segment(int ny, int nx, const float* data) {
   }
 
   int sizeX = (ry1-ry0) * (rx1-rx0);
-  rXc /= sizeX;
-  rYc /= size - sizeX;
+  rXc /= (double)sizeX;
+  rYc /= (double)(size - sizeX);
 
   result.y0 = ry0;
   result.x0 = rx0;
