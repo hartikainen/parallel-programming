@@ -27,6 +27,24 @@
 
 #define d4tod(d4) d4[0]+d4[1]+d4[2]+d4[3]
 
+double PRECISION = 0.0;
+void double_check_hXY(double vXc, int x0, int y0, int x1, int y1, int nx, const float* data) {
+  double test_vXc = 0.0;
+  for (int j=y0; j<y1; j++) {
+    for (int i=x0; i<x1; i++) {
+      for (int c=0; c<3; c++){
+	test_vXc += (double)data[c + 3 * i + 3 * nx * j];
+      }
+    }
+  }
+
+  if (std::abs(vXc - test_vXc) > PRECISION) {
+    printf(" BROKEN %f", std::abs(vXc - test_vXc));
+  }
+
+
+}
+
 Result segment(int ny, int nx, const float* data) {
   int size = nx * ny; // size of the whole image
   double4_t cdata[size] = {0.0}; // vectorized data
@@ -82,6 +100,8 @@ Result segment(int ny, int nx, const float* data) {
 	  double tmpX = vXc * vXc * divX;
 	  double tmpY = vYc * vYc * divY;
 	  hXY = tmpX + tmpY;
+
+	  double_check_hXY(vXc, x0, y0, x1, y1, nx, data);
 
 	  if (hXY > max_hXY) {
 	    max_hXY = hXY;
