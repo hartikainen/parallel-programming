@@ -36,7 +36,7 @@ Result segment(int ny, int nx, const float* data) {
   // are 0. Thus we can dynamically calculate the other sums.
   for (int y1=0; y1<ny; y1++) {
     for (int x1=0; x1<nx; x1++) {
-      S00[(y1+1)*snx + (x1+1)] = d4tod(cdata[y1*nx + x1])
+      S00[(y1+1)*snx + (x1+1)] = cdata[y1*nx + x1]
                                + S00[y1    *snx + (x1+1)]
                                + S00[(y1+1)*snx + x1    ]
                                - S00[y1    *snx + x1    ];
