@@ -20,17 +20,15 @@ Result segment(int ny, int nx, const float* data) {
   double4_t rXc = {0.0}, rYc = {0.0}; // return colors
   Result result { ny/3, nx/3, 2*ny/3, 2*nx/3, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f} };
 
+#pragma omp for schedule(dynamic)
   for (int y=0; y<ny; y++) {
     for (int x=0; x<nx; x++) {
       int idx = y*nx + x;
       for (int c=0; c<3; c++) {
 	cdata[idx][c] = data[c + 3*idx];
       }
-      vPc += cdata[idx];
     }
   }
-
-  //vPc = d4tod(vPc4);
 
   // The borders (x=0 and y=0) for the color sum matrix
   // are 0. Thus we can dynamically calculate the other sums.
@@ -43,13 +41,15 @@ Result segment(int ny, int nx, const float* data) {
     }
   }
 
+  vPc = S00[snx*sny-1];
+
 #pragma omp parallel
 {
   double4_t hXY4, vYc, vXc;
   double sizeX, sizeY, divX, divY, hXY, max_hXY = -1;
   int tx0 = 0, ty0 = 0, tx1 = 1, ty1 = 1;
 
-  #pragma omp for schedule(static, 1)
+#pragma omp for schedule(dynamic)
   for (int h=1; h<=ny; h++) {
     for (int w=1; w<=nx; w++) {
       sizeX = (double)h * (double)w;
@@ -93,27 +93,40 @@ Result segment(int ny, int nx, const float* data) {
   }
 }
 
+#pragma omp parallel
+{
+  double4_t temp_rXc = {0.0}, temp_rYc = {0.0};
+  #pragma omp for
   for (int y=0; y<ry0; y++) {
     for (int x=0; x<nx; x++) {
-      rYc += cdata[y*nx + x];
+      temp_rYc += cdata[y*nx + x];
     }
   }
+  #pragma omp for
   for (int y=ry0; y<ry1; y++) {
     for (int x=0; x<rx0; x++) {
-      rYc += cdata[y*nx + x];
+      temp_rYc += cdata[y*nx + x];
     }
     for (int x=rx0; x<rx1; x++) {
-      rXc += cdata[y*nx + x];
+      temp_rXc += cdata[y*nx + x];
     }
     for (int x=rx1; x<nx; x++) {
-      rYc += cdata[y*nx + x];
+      temp_rYc += cdata[y*nx + x];
     }
   }
+  #pragma omp for
   for (int y=ry1; y<ny; y++) {
     for (int x=0; x<nx; x++) {
-      rYc += cdata[y*nx + x];
+      temp_rYc += cdata[y*nx + x];
     }
   }
+
+  #pragma omp critical
+  {
+    rXc += temp_rXc;
+    rYc += temp_rYc;
+  }
+}
 
   int sizeX = (ry1-ry0) * (rx1-rx0);
   rXc /= (double)sizeX;
