@@ -9,18 +9,19 @@
 
 Result segment(int ny, int nx, const float* data) {
   int size = nx * ny; // size of the whole image
-  double4_t cdata[size] = {0.0}; // vectorized data
+  double4_t* cdata = double4_alloc(size); // vectorized data
   double4_t vPc = {0.0};
+  double4_t zero4_t = {0.0, 0.0, 0.0, 0.0};
   double maxmaxhXY = 0.0;
 
   int snx = nx+1, sny = ny+1;
-  double4_t S00[snx*sny] = {0.0};
+  double4_t* S00 = double4_alloc(snx*sny);
 
   int ry0=0, rx0=0, ry1=1, rx1=1; // return coordinates
   double4_t rXc = {0.0}, rYc = {0.0}; // return colors
   Result result { ny/3, nx/3, 2*ny/3, 2*nx/3, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f} };
 
-#pragma omp for schedule(static)
+  #pragma omp for schedule(static, 1)
   for (int y=0; y<ny; y++) {
     for (int x=0; x<nx; x++) {
       int idx = y*nx + x;
@@ -32,6 +33,12 @@ Result segment(int ny, int nx, const float* data) {
 
   // The borders (x=0 and y=0) for the color sum matrix
   // are 0. Thus we can dynamically calculate the other sums.
+  for (int sx=0; sx<snx; sx++) {
+    S00[sx] = zero4_t;
+  }
+  for (int sy=0; sy<sny; sy++) {
+    S00[snx*sy] = zero4_t;
+  }
   for (int y1=0; y1<ny; y1++) {
     for (int x1=0; x1<nx; x1++) {
       S00[(y1+1)*snx + (x1+1)] = cdata[y1*nx + x1]
@@ -49,7 +56,7 @@ Result segment(int ny, int nx, const float* data) {
   double sizeX, sizeY, divX, divY, hXY, max_hXY = -1;
   int tx0 = 0, ty0 = 0, tx1 = 1, ty1 = 1;
 
-  #pragma omp for schedule(static)
+  #pragma omp for schedule(static, 1)
   for (int h=1; h<=ny; h++) {
     for (int w=1; w<=nx; w++) {
       sizeX = (double)h * (double)w;
@@ -66,7 +73,7 @@ Result segment(int ny, int nx, const float* data) {
 	      - S00[y0*snx + x1]
 	      + S00[y0*snx + x0];
 	  vYc = vPc - vXc;
-	  hXY4 = (vXc * vXc) * divX + (vYc * vYc) * divY;
+	  hXY4 = (vXc * vXc * divX) + (vYc * vYc * divY);
 	  hXY = d4tod(hXY4);
 
 	  if (hXY > max_hXY) {
