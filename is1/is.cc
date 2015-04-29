@@ -103,13 +103,13 @@ Result segment(int ny, int nx, const float* data) {
 #pragma omp parallel
 {
   double4_t temp_rXc = {0.0}, temp_rYc = {0.0};
-  #pragma omp for
+  #pragma omp for schedule(static, 1)
   for (int y=0; y<ry0; y++) {
     for (int x=0; x<nx; x++) {
       temp_rYc += cdata[y*nx + x];
     }
   }
-  #pragma omp for
+  #pragma omp for schedule(static, 1)
   for (int y=ry0; y<ry1; y++) {
     for (int x=0; x<rx0; x++) {
       temp_rYc += cdata[y*nx + x];
@@ -121,7 +121,7 @@ Result segment(int ny, int nx, const float* data) {
       temp_rYc += cdata[y*nx + x];
     }
   }
-  #pragma omp for
+  #pragma omp for schedule(static, 1)
   for (int y=ry1; y<ny; y++) {
     for (int x=0; x<nx; x++) {
       temp_rYc += cdata[y*nx + x];
