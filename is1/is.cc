@@ -28,21 +28,49 @@
 #define d4tod(d4) d4[0]+d4[1]+d4[2]+d4[3]
 
 double PRECISION = 0.0;
-void double_check_hXY(double vXc, int x0, int y0, int x1, int y1, int nx, const float* data) {
-  double test_vXc = 0.0;
-  for (int j=y0; j<y1; j++) {
-    for (int i=x0; i<x1; i++) {
-      for (int c=0; c<3; c++){
-	test_vXc += (double)data[c + 3 * i + 3 * nx * j];
+double double_check_hXY(int x0, int y0, int x1, int y1, int nx, int ny, const float* data, double4_t* cdata) {
+  if (data) {};
+  double hXY = 0;
+  double4_t hXY4 = {0};
+  // double test_vXc = 0.0;
+  // double test_vYc = 0.0;
+  double4_t test_vXc4 = {0.0};
+  double4_t test_vYc4 = {0.0};
+
+  double sizeX = ((double)y1 - (double)y0) * ((double)x1 - (double)x0);
+  double sizeY = ((double)nx * (double)ny) - sizeX;
+  double divX = 1.0 / sizeX;
+  double divY = 1.0 / sizeY;
+
+  for (int j=0; j<ny; j++) {
+    for (int i=0; i<nx; i++) {
+      bool inside = y0 <= j && j < y1 && x0 <= i && i < x1;
+      double4_t d = cdata[(j*nx + i)];
+      if (inside) {
+	test_vXc4 += d;
+      } else {
+	test_vYc4 += d;
       }
     }
   }
 
-  if (std::abs(vXc - test_vXc) > PRECISION) {
-    printf(" BROKEN %f", std::abs(vXc - test_vXc));
+  hXY4 = (test_vXc4 * test_vXc4 * divX) + (test_vYc4 * test_vYc4 * divY);
+  hXY = d4tod(hXY4);
+
+  return hXY;
+}
+
+void printS00(int ny, int nx, double* S00) {
+  printf("\n\nS00:\n");
+  printf("nx: %d, ny: %d\n", nx, ny);
+  for (int y=0; y<ny; y++) {
+    for (int x=0; x<nx; x++) {
+      printf("%f ", S00[y*nx + x]);
+    }
+    printf("\n");
   }
-
-
+  printf("\n");
+  printf("END OF S00 PRINT:\n");
 }
 
 Result segment(int ny, int nx, const float* data) {
@@ -50,7 +78,7 @@ Result segment(int ny, int nx, const float* data) {
   double4_t cdata[size] = {0.0}; // vectorized data
   double4_t vPc4 = {0.0};
 
-  double vXc, vYc, hXY, vPc = 0.0, max_hXY = 0.0;
+  double vPc = 0.0, max_hXY = 0.0;
   double S00[(ny+1)*(nx+1)] = {0.0};
 
   int ry0=0, rx0=0, ry1=1, rx1=1; // return coordinates
@@ -80,18 +108,23 @@ Result segment(int ny, int nx, const float* data) {
     }
   }
 
+  if ((nx == 100 && ny == 67) || (nx == 67 && ny == 100)) {
+    printS00(ny+1, nx+1, S00);
+  }
+
   //#pragma omp parallel for schedule(static, 1)
   for (int h=1; h<=ny; h++) {
     for (int w=1; w<=nx; w++) {
-      int sizeX = h * w;
-      int sizeY = size - sizeX;
-      double divX = 1.0/(double)sizeX;
-      double divY = 1.0/(double)sizeY;
+      double sizeX = (double)h * (double)w;
+      double sizeY = (double)size - sizeX;
+      double divX = 1.0/sizeX;
+      double divY = 1.0/sizeY;
 
       for (int y0=0; y0<=ny-h; y0++) {
 	for (int x0=0; x0<=nx-w; x0++) {
 	  int y1 = y0 + h;
 	  int x1 = x0 + w;
+	  double hXY, vYc, vXc;
 	  vXc = S00[y1*(nx+1) + x1]
 	      - S00[y1*(nx+1) + x0]
 	      - S00[y0*(nx+1) + x1]
@@ -101,7 +134,12 @@ Result segment(int ny, int nx, const float* data) {
 	  double tmpY = vYc * vYc * divY;
 	  hXY = tmpX + tmpY;
 
-	  double_check_hXY(vXc, x0, y0, x1, y1, nx, data);
+	  //double test_hXY = double_check_hXY(x0, y0, x1, y1, nx, ny, data, cdata);
+	  //hXY = test_hXY;
+
+	  // if (std::abs(test_hXY - hXY) > EPSILON) {
+	  //   printf("ERROR!");
+	  // }
 
 	  if (hXY > max_hXY) {
 	    max_hXY = hXY;
@@ -146,8 +184,8 @@ Result segment(int ny, int nx, const float* data) {
   result.x1 = rx1;
   result.y1 = ry1;
   for (int c=0; c<3; c++) {
-    result.inner[c] = rXc[c];
-    result.outer[c] = rYc[c];
+    result.inner[c] = (float)rXc[c];
+    result.outer[c] = (float)rYc[c];
   }
 
   return result;
