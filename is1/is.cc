@@ -1,4 +1,5 @@
 #include "is.h"
+#include "dummy.h"
 #include <cmath>
 #include <stdio.h>
 #include <iostream>
@@ -82,6 +83,7 @@ Result segment(int ny, int nx, const float* data) {
 	    ty0 = y0;
 	    tx1 = x1;
 	    ty1 = y1;
+	    dummy();
 	  }
 	}
       }
