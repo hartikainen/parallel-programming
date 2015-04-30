@@ -16,7 +16,6 @@ void merge_blocks(data_t* b1, data_t* b2, int n1, int n2) {
     memcpy(&b3[t*part_size], &b1[t*part_size], sizeof(data_t)*nn);
   }
 
-
   int i=0, j=0, n=0;
   while (i < n1 && j < n2) {
     b1[n++] = (b2[j] < b3[i]) ? b2[j++] : b3[i++];
