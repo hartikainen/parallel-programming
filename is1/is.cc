@@ -83,6 +83,9 @@ Result segment(int ny, int nx, const float* data) {
 	    ty0 = y0;
 	    tx1 = x1;
 	    ty1 = y1;
+	    // dummy does nothing. It's here just to make
+	    // sure that the if statement gets compiled
+	    // efficiently.
 	    dummy();
 	  }
 	}
