@@ -9,26 +9,27 @@ void merge_blocks(data_t* b1, data_t* b2, int n1, int n2) {
   data_t* b3 = (data_t*)malloc(sizeof(data_t) * n1);
   memcpy(b3, b1, sizeof(data_t)*n1);
 
-  int i=0, j=0;
-  for (int n=0; n<n1; n++) {
+  int i=0, j=0, n=0;
+  for (n=0; n<n1; n++) {
     if (b2[j] < b3[i]) {
       b1[n] = b2[j++];
     } else {
       b1[n] = b3[i++];
     }
   }
-  for (int n=0; n<n2; n++) {
-    if (i >= n1) {
-      b2[n] = b2[j++];
-    } else if (j >= n2) {
-      b2[n] = b3[i++];
+  n = 0;
+  while (i < n1 && j < n2) {
+    if (b2[j] < b3[i]) {
+      b2[n++] = b2[j++];
     } else {
-      if (b2[j] < b3[i]) {
-	b2[n] = b2[j++];
-      } else {
-	b2[n] = b3[i++];
-      }
+      b2[n++] = b3[i++];
     }
+  }
+  while (i < n1) {
+    b2[n++] = b3[i++];
+  }
+  while (j < n2) {
+    b2[n++] = b2[j++];
   }
 
   free(b3);
