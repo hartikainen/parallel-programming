@@ -9,4 +9,8 @@ case "$($1 -dumpversion)" in
     echo "-fsanitize=address -fsanitize=undefined"
     exit 0
     ;;
+5.*)
+    echo "-fsanitize=address -fsanitize=undefined"
+    exit 0
+    ;;
 esac

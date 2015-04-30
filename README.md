@@ -70,8 +70,8 @@ We will assume the following:
 
  - Operating system: Linux or Mac OS X.
 
- - Compiler: GCC version 4.9 or 4.8, somewhere in the path,
-   with the name `g++-4.9`, `g++-4.8`, or `g++`.
+ - Compiler: GCC version 5.1, 4.9, or 4.8, somewhere in the path,
+   with the name `g++-5.1`, `g++-5`, `g++-4.9`, `g++-4.8`, or `g++`.
 
  - Libraries: libpng installed in a location where GCC can find it.
 
