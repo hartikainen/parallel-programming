@@ -107,12 +107,22 @@ Disable optimisations:
     make DEBUG=1
     make test
 
-Disable optimisations and enable address sanitizer
+Disable optimisations and enable AddressSanitizer
 (helps to catch many memory access errors):
 
     cd mf1
     make clean
     make DEBUG=2
+    make test
+
+Disable optimisations and enable AddressSanitizer
+and the C++ standard library debug mode (helps to
+catch e.g. out-of-bounds accesses with standard
+containers):
+
+    cd mf1
+    make clean
+    make DEBUG=3
     make test
 
 Disable modern CPU instructions:
