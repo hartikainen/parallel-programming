@@ -61,6 +61,8 @@ void psort(int n, data_t* data) {
   for (int p=thread_count; p > 1; p /= 2) {
     blocksize = std::floor(n / p);
     padding = n - blocksize * p;
+
+    #pragma omp parallel for num_threads(p/2)
     for (int i=0; i<p; i+=2) {
       int blocksize2 = (i < p-2) ? blocksize : blocksize + padding;//n1 + (n - blocksize1*p) : blocksize1;
       merge_blocks(&data[i*blocksize], &data[(i+1)*blocksize], blocksize, blocksize2);
