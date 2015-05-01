@@ -1,0 +1,96 @@
+\documentclass[a4paper,10pt]{article}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{amsthm}
+\usepackage{hyperref, url}
+\usepackage{listings}
+\usepackage{verbatim}
+\usepackage{color}
+\usepackage[T1]{fontenc}
+\usepackage{csvsimple}
+\usepackage{array,booktabs, longtable}
+
+\DeclareMathOperator*{\argmin}{arg\!\min}
+\DeclareMathOperator*{\argmax}{arg\!\max}
+\newcommand*\conj[1]{\overline{#1}}
+
+\newcommand\verbatimtable[2] {
+  \begin{table}[h]
+    \centering
+
+    \begin{tabular}{lll} \toprule %
+      \bfseries ny & \bfseries nx & \bfseries time \\ \midrule% specify table head
+      \csvreader[head to column names]{#1}{}% use head of csv as column names
+      {\\\ny & \nx & \time}\\ \bottomrule % specify the columns to be used
+    \end{tabular}
+
+    \caption{#2}
+    \label{tab:#1}
+  \end{table}
+}
+
+\newcommand\figureFromFile[3] {
+  \pagebreak
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{#1.#2}
+    \caption{#3}
+    \label{fig:#1}
+  \end{figure}
+}
+
+\csvstyle{4col1header}{tabular=llll,
+  table head=\bfseries \nx & \bfseries \ny & \bfseries \time,
+  head to column names}
+
+\lstdefinestyle{linenumbering} {
+  numbers=left,
+  numbersep=5pt
+  showspaces=false,
+}
+
+\lstset{style=linenumbering}
+% \lstset{style=blankcomments}
+
+\parindent 0mm
+\parskip 3mm
+
+% add your name and student number in parenthesis
+\title{ICS-4020 Programming Parallel Computers Week 2}
+\author{Kristian Hartikainen (222956)\\
+       {\tt kristian.hartikainen@aalto.fi}}
+\begin{document}
+
+\maketitle
+
+\pagebreak
+
+%\csvautotabular[separator=tab]{cp1.txt}
+%\csvautobooktabular[separator=tab]{./benchmarks/cp1.txt}
+%\csvautobooklongtable[separator=tab]{benchmarksmf1.txt}
+
+
+\section{Introduction}
+\input{introduction.tex}
+
+\pagebreak
+\section{Results}
+\input{results.tex}
+
+% \pagebreak
+% \begin{thebibliography}{9}
+%   \bibitem{gionis14}
+%     Gionis, A.
+%     2014.
+%     T-61.5060 Algorithmic Methods of Data Mining P: Distance functions [lecture slides].
+%     Retrieved from \url{https://noppa.aalto.fi/noppa/kurssi/t-61.5060/luennot/T-61_5060_distance_functions.pdf}.
+% \end{thebibliography}
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

@@ -1,0 +1,36 @@
+
+
+\verbatimtable{benchmarks/cp1.txt}{Benchmarks for the exercise cp1}
+
+\verbatimtable{benchmarks/cp2-1t.txt}{Benchmarks for the exercise cp2, using 1 thread}
+\verbatimtable{benchmarks/cp2-2t.txt}{Benchmarks for the exercise cp2, using 2 thread}
+\pagebreak
+
+\verbatimtable{benchmarks/cp2-4t.txt}{Benchmarks for the exercise cp2, using 4 threads}
+\verbatimtable{benchmarks/cp2-8t.txt}{Benchmarks for the exercise cp2, using 8 threads}
+
+\verbatimtable{benchmarks/cp3-8t.txt}{Benchmarks for the exercise cp3, using 8 threads}
+\pagebreak
+
+\verbatimtable{benchmarks/cp4-2bs-8t.txt}{Benchmarks for the exercise cp4, using 8 threads, and 2*2 block size}
+\verbatimtable{benchmarks/cp4-3bs-8t.txt}{Benchmarks for the exercise cp4, using 8 threads, and 3*3 block size}
+\pagebreak
+
+\figureFromFile{figure/cp1-mult-vs-time}{png}{Multiplication per second, using naive algorithm implemented in cp1}
+\figureFromFile{figure/cp2-mult-vs-time}{png}{Multiplication per second, using multipthreaded algorithm implemented in cp2}
+\figureFromFile{figure/cp3-mult-vs-time}{png}{Multiplication per second, using vectorized algorithm implemented in cp3}
+
+\figureFromFile{figure/cp4-2bs-mult-vs-time}{png}{Multiplication per second, using cache blocking (block width 2) algorithm implemented in cp4}
+\figureFromFile{figure/cp4-3bs-mult-vs-time}{png}{Multiplication per second, using cache blocking (block width 3) algorithm implemented in cp4}
+
+\pagebreak
+% \figureFromFile{grouped_runningtime_vs_cores}{png}{The number of the cores vs logarithmic running time, grouped by the input size}
+% \pagebreak
+% \figureFromFile{grouped_runningtime_vs_inputsize}{png}{Input size vs running time, grouped by the number of the cores}
+% \pagebreak
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "week2.tex"
+%%% End:
