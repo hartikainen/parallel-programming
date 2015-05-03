@@ -17,3 +17,8 @@ cp-benchmark
 mf-benchmark
 /datavis/
 /reports/week1/
+/reports/week3/week3.aux
+
+*.el
+*.aux
+*.out

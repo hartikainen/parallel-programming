@@ -21,10 +21,25 @@
   \begin{table}[h]
     \centering
 
-    \begin{tabular}{lll} \toprule %
+    \begin{tabular}{cccc} \toprule %
       \bfseries ny & \bfseries nx & \bfseries time \\ \midrule% specify table head
       \csvreader[head to column names]{#1}{}% use head of csv as column names
       {\\\ny & \nx & \time}\\ \bottomrule % specify the columns to be used
+    \end{tabular}
+
+    \caption{#2}
+    \label{tab:#1}
+  \end{table}
+}
+
+\newcommand\verbatimtabletwo[2] {
+  \begin{table}[h]
+    \centering
+
+    \begin{tabular}{cccc} \toprule %
+      \bfseries data type & \bfseries array size & \bfseries time & \bfseries non-parallelized time \\ \midrule% specify table head
+      \csvreader[head to column names]{#1}{}% use head of csv as column names
+      {\\\type & \size & \time & \timetwo}\\ \bottomrule % specify the columns to be used
     \end{tabular}
 
     \caption{#2}
@@ -42,10 +57,6 @@
   \end{figure}
 }
 
-\csvstyle{4col1header}{tabular=llll,
-  table head=\bfseries \nx & \bfseries \ny & \bfseries \time,
-  head to column names}
-
 \lstdefinestyle{linenumbering} {
   numbers=left,
   numbersep=5pt
@@ -53,13 +64,11 @@
 }
 
 \lstset{style=linenumbering}
-% \lstset{style=blankcomments}
 
 \parindent 0mm
 \parskip 3mm
 
-% add your name and student number in parenthesis
-\title{ICS-4020 Programming Parallel Computers Week 2}
+\title{ICS-4020 Programming Parallel Computers Week 3}
 \author{Kristian Hartikainen (222956)\\
        {\tt kristian.hartikainen@aalto.fi}}
 \begin{document}
@@ -68,11 +77,6 @@
 
 \pagebreak
 
-%\csvautotabular[separator=tab]{cp1.txt}
-%\csvautobooktabular[separator=tab]{./benchmarks/cp1.txt}
-%\csvautobooklongtable[separator=tab]{benchmarksmf1.txt}
-
-
 \section{Introduction}
 \input{introduction.tex}
 
@@ -80,14 +84,6 @@
 \section{Results}
 \input{results.tex}
 
-% \pagebreak
-% \begin{thebibliography}{9}
-%   \bibitem{gionis14}
-%     Gionis, A.
-%     2014.
-%     T-61.5060 Algorithmic Methods of Data Mining P: Distance functions [lecture slides].
-%     Retrieved from \url{https://noppa.aalto.fi/noppa/kurssi/t-61.5060/luennot/T-61_5060_distance_functions.pdf}.
-% \end{thebibliography}
 \end{document}
 
 %%% Local Variables:

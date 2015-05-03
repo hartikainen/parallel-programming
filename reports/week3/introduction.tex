@@ -1,16 +1,12 @@
-I implemented the correlate function by using simple C code, with one additional C++ function to calculate the actual medians. The task itself is pretty straight forward, and the code is commented such that it should be sufficient as a documentation. The benchmarks for the task were run on the classroom computer 'drontti'.
+I implemented the image segmentation (task is1) algorithm and merge sort (task so1) using simple C/C++ code. The benchmarks for the tasks were run on the classroom computer 'drontti'.
 
-The benchmarks for the naive solution (cp1) are listed on table \ref{tab:benchmarks/cp1.txt}. The most time consuming part of the algorithm is the multiplication of the correlation matrix with its own transpose. For ny*nx matrix, the matrix multiplication takes ny*ny*nx/2 + ny*nx/2 multiplication operations. The running time against the count of multiplications is plotted in the figure \ref{fig:figure/cp1-mult-vs-time}.
+The benchmarks for the image segmentation (cp1) are listed on tables \ref{tab:benchmarks/is1-1t.txt}, \ref{tab:benchmarks/is1-2t.txt}, \ref{tab:benchmarks/is1-4t.txt},  \ref{tab:benchmarks/is1-8t.txt}, for 1, 2, 4 and 8 threads respectively. The critical part for the running time is the calclulations done in the innermost for loops. I tried to move all the code that might slow down the execution. There's a weird looking asm(``\#dummy'') line in the loop. That is to control the loop predictions done by the compiler. The number of divisions versus the running times are plotted in the figure \ref{fig:figure/is1-divisions-vs-time}.
 
-For the cp2, I used simple OpenMP pragmas to parallelize the for loops. The benchmarks for the cp2 solution running on 2, 4 and 8 cores can be found from the tables \ref{tab:benchmarks/cp2-1t.txt}, \ref{tab:benchmarks/cp2-2t.txt}, \ref{tab:benchmarks/cp2-4t.txt}, \ref{tab:benchmarks/cp2-8t.txt} respectively. Figure  \ref{fig:figure/cp2-mult-vs-time} shows the running times against the multiplication count for 2, 4, and 8 cores. The result from cp1 is shown as a reference, with black markers.
+For the so1, the code was quite straightforward. I implemented my own merge function, since I didn't notice the existence of std::merge at first. The benchmarks the solution running on 1, 2, 4 and 8 cores can be found from the tables \ref{tab:benchmarks/so1-1t.txt}, \ref{tab:benchmarks/so1-2t.txt}, \ref{tab:benchmarks/so1-4t.txt}, \ref{tab:benchmarks/so1-8t.txt} respectively. Figures \ref{fig:figure/so1-large-random}, \ref{fig:figure/so1-small-random}, \ref{fig:figure/so1-constant}, \ref{fig:figure/so1-increasing} and \ref{fig:figure/so1-decreasing} show the speed up for so1 algorithm versus the input size, for different types of test data.
 
-Benchmarks for running the vectorized algorithm on 8 cores are shown in tables \ref{tab:benchmarks/cp3-8t.txt}, and the running time versus multiplication count in figure \ref{fig:figure/cp2-mult-vs-time}. The results for cp2 are shown in magenta and black.
-
-Benchmarks for the algorithm using cache blocking are shown in tables \ref{tab:benchmarks/cp4-2bs-8t.txt} and \ref{tab:benchmarks/cp4-2bs-8t.txt}, for 2x2 and 3x3 block size respectively. Nanoseconds per multiplication are plotted in igures \ref{fig:figure/cp4-2bs-mult-vs-time} and \ref{fig:figure/cp4-3bs-mult-vs-time}.
-
-The best running time for 4000x4000 matrix was 1.782s, using 3x3 cache blocking. After 3x3 blocks the nanonseconds per multiplication started to grow, due to the lack of L1 memory. I couldn't get the compiler to unroll my for-loops automatically, so I had to implement the cache blocking (uroll the loops) manually. Thus I don't have graphs/data for larger block sizes. My in progress implementation of the non-hard-coded cache blocking can be found on my branch called 'block-sizing'.
+Best running time for is1 for 400*400 image was 6.453s, and for so1 with 100000000 input size was 2.207s.
 
 %%% Local Variables:
 %%% mode: latex
-%%% TeX-master: "week2.tex"
+%%% TeX-master: "week3.tex"
 %%% End:
