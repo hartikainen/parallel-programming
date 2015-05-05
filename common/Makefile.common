@@ -1,7 +1,7 @@
 .PHONY: all clean depend test test1 test2 benchmark benchmark1 benchmark2
 .DELETE_ON_ERROR:
 
-CXX := $(shell ../util/find-cxx)
+CXX:=$(shell ../util/find-cxx)
 ifeq ($(CXX),)
 $(error could not find a suitable C++ complier)
 endif
@@ -22,6 +22,8 @@ LDFLAGS+=$(shell ../util/find-sanity $(CXX))
 else
 CXXFLAGS+=-O3
 endif
+
+SOURCES:=*.cc
 
 TEST=./test.sh
 TEST1=./test.sh
@@ -64,7 +66,7 @@ benchmark2: $(bin)
 	../util/objdump-wrapper -d -S $^ > $@
 
 depend:
-	$(CXX) -MM $(CXXFLAGS) *.cc > Makefile.dep
+	$(CXX) -MM $(CXXFLAGS) -x c++ $(SOURCES) > Makefile.dep
 
 clean:
 	rm -f $(bin) *.o *.s *.asm1 *.asm2

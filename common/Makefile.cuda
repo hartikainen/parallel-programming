@@ -1,0 +1,103 @@
+include ../common/Makefile.common
+SOURCES+=*.cu
+
+################################################################################
+# CUDA location, OS type, underlying compiler, etc.
+
+ifneq "$(wildcard /usr/local/cuda-7.0)" ""
+CUDA_PATH?="/usr/local/cuda-7.0"
+else ifneq "$(wildcard /usr/local/cuda-6.5)" ""
+CUDA_PATH?="/usr/local/cuda-6.5"
+endif
+ifeq ($(CUDA_PATH),)
+$(error could not find CUDA)
+endif
+
+OSUPPER=$(shell uname -s 2>/dev/null | tr "[:lower:]" "[:upper:]")
+OSLOWER=$(shell uname -s 2>/dev/null | tr "[:upper:]" "[:lower:]")
+OS_SIZE=$(shell uname -m | sed -e "s/x86_64/64/" -e "s/armv7l/32/" -e "s/aarch64/64/")
+OS_ARCH=$(shell uname -m)
+ARCH_FLAGS=
+
+DARWIN=$(strip $(findstring DARWIN, $(OSUPPER)))
+ifneq ($(DARWIN),)
+XCODE_GE_5=$(shell expr `xcodebuild -version | grep -i xcode | awk '{print $$2}' | cut -d'.' -f1` \>= 5)
+endif
+
+# Take command line flags that override any of these settings
+ifeq ($(x86_64),1)
+OS_SIZE=64
+OS_ARCH=x86_64
+endif
+
+# Common binaries
+ifneq ($(DARWIN),)
+ifeq ($(XCODE_GE_5),1)
+GCC?=clang
+else
+GCC?=g++
+endif
+else
+GCC?=g++
+endif
+NVCC:=$(CUDA_PATH)/bin/nvcc -ccbin $(GCC)
+
+# internal flags
+NVCCFLAGS:=-m${OS_SIZE} ${ARCH_FLAGS}
+CCFLAGS:=-O3 -Wall
+LDFLAGS:=
+
+# Extra user flags
+EXTRA_NVCCFLAGS  ?=
+EXTRA_LDFLAGS    ?=
+EXTRA_CCFLAGS    ?=
+
+# OS-specific build flags
+ifneq ($(DARWIN),)
+LDFLAGS+=-rpath $(CUDA_PATH)/lib
+CCFLAGS+=-arch $(OS_ARCH)
+endif
+
+# Debug build flags
+ifeq ($(dbg),1)
+NVCCFLAGS+=-g -G
+TARGET:=debug
+else
+TARGET:=release
+endif
+
+ALL_CCFLAGS:=
+ALL_CCFLAGS+=$(NVCCFLAGS)
+ALL_CCFLAGS+=$(EXTRA_NVCCFLAGS)
+ALL_CCFLAGS+=$(addprefix -Xcompiler ,$(CCFLAGS))
+ALL_CCFLAGS+=$(addprefix -Xcompiler ,$(EXTRA_CCFLAGS))
+
+ALL_LDFLAGS:=
+ALL_LDFLAGS+=$(ALL_CCFLAGS)
+ALL_LDFLAGS+=$(addprefix -Xlinker ,$(LDFLAGS))
+ALL_LDFLAGS+=$(addprefix -Xlinker ,$(EXTRA_LDFLAGS))
+
+################################################################################
+# Gencode arguments
+
+ifeq ($(OS_ARCH),armv7l)
+SMS?=20 30 32 35 37 50
+else
+SMS?=20 30 35 37 50
+endif
+
+ifeq ($(GENCODE_FLAGS),)
+# Generate SASS code for each SM architecture listed in $(SMS)
+$(foreach sm,$(SMS),$(eval GENCODE_FLAGS+=-gencode arch=compute_$(sm),code=sm_$(sm)))
+
+# Generate PTX code from the highest SM architecture in $(SMS) to guarantee forward-compatibility
+HIGHEST_SM:=$(lastword $(sort $(SMS)))
+ifneq ($(HIGHEST_SM),)
+GENCODE_FLAGS+=-gencode arch=compute_$(HIGHEST_SM),code=compute_$(HIGHEST_SM)
+endif
+endif
+
+################################################################################
+# Standard stuff.
+
+CXXFLAGS+=-isystem ${CUDA_PATH}/include
