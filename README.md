@@ -77,6 +77,9 @@ We will assume the following:
 
 For assembly output, you also need `objdump` and `c++filt`.
 
+For CUDA code, you also need to have CUDA 7.0 installed in
+`/usr/local/cuda-7.0`.
+
 
 ### Classroom computers
 
@@ -135,6 +138,16 @@ Disable modern CPU instructions:
 You can also combine these, e.g., ARCH=1 DEBUG=1.
 
 Remember to run `make clean` afterwards.
+
+
+Advanced: CUDA debug builds
+---------------------------
+
+You can compile CUDA code with `make DEBUG=1` for debug builds.
+This will compile with `nvcc -g -G` so that you can easily debug
+your code with `cuda-gdb`.
+
+Sorry, `DEBUG=2` is not supported for CUDA code.
 
 
 Advanced: see the assembly code
