@@ -37,7 +37,7 @@ __global__ void matrix_multiply(int nx, int ny, double* X, float* result) {
   int x = threadIdx.x + blockIdx.x * blockDim.x;
   int y = threadIdx.y + blockIdx.y * blockDim.y;
 
-  if (x >= ny || y >= ny) return;
+  if (x < y || x >= ny || y >= ny) return;
 
   for (int i=0; i<nx; i++) {
     r += X[x*nx + i] * X[y*nx + i];
@@ -82,6 +82,7 @@ void correlate(int ny, int nx, const float* data, float* result) {
   	      (ny + szBlock.y - 1) / szBlock.y);
 
   matrix_multiply<<<szGrid, szBlock>>>(nx, ny, dev_X, dev_result);
+  CHECK_CUDA_ERROR(cudaGetLastError());
 
   // Copy result back to the CPU memory
   CHECK_CUDA_ERROR( cudaMemcpy(result,
