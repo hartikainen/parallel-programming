@@ -1,0 +1,10 @@
+I took the old code from cp1, and changed it to work on GPU, using CUDA. Basically, the only thing I did was to move the matrix multiplication part of the task to GPU. This is implemented in matrix\_multiply -function, and called from the same correlate function as where it was done in cp1. correlate -function copies the matrix to be multiplied from the host memory in to the device memory, do the multiplication, and copy the results from the device to the host.
+
+Then benchmarks were run on the classroom computer 'Kiwi', and different block sizes (arbitrarily chosen to be powers of two) were tested. Benchmarks for are shown in the table \ref{tab:cp8-benchmarks}, and the corresponding visualizations in figure \ref{fig:figure/cp8}.
+
+Fastest running time, 0.847s, was achieved on 8x8 block size.
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "week4.tex"
+%%% End:
