@@ -7,17 +7,21 @@
 
 class Timer {
 public:
-    Timer(bool add_tab_=false) : start{get_time()}, add_tab{add_tab_}
+    Timer(bool add_tab_=false, std::ostream& f_=std::cout) : start{get_time()}, add_tab{add_tab_}, f{f_}
     {}
 
     ~Timer() {
         double now = get_time();
-        std::cout << std::fixed << std::setprecision(3) << (now - start);
+        std::ios_base::fmtflags oldf = f.flags(std::ios::right | std::ios::fixed);
+        std::streamsize oldp = f.precision(3);
+        f << (now - start);
         if (add_tab) {
-            std::cout << "\t";
+            f << "\t";
         }
-        std::cout << std::flush;
-        std::cout.copyfmt(std::ios(NULL));
+        f << std::flush;
+        f.flags(oldf);
+        f.precision(oldp);
+        f.copyfmt(std::ios(NULL));
     }
 
 private:
@@ -29,6 +33,7 @@ private:
 
     double start;
     bool add_tab;
+    std::ostream& f;
 };
 
 #endif
