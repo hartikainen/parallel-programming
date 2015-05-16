@@ -44,45 +44,73 @@ float get_root_square_sum(float* row, int nx) {
   return root_square_sum;
 }
 
-__global__ void matrix_multiply(int nx, int ny, float* X, float* result, const int m, const int k) {
-  if (x < y || x >= ny || y >= ny) return;
-
+#define M 2
+#define K 2
+__global__ void matrix_multiply(int nx, int ny, float* X, float* result) {
+  const int m = M;
+  const int k = K;
   __shared__ float A1[m][m][k];
   __shared__ float A2[m][m][k];
-  float temp_X[k*k] = {0};
-  float B1[k];
-  float B2[k];
-
-  float r = 0;
+  float tmp[k][k] = {0};
 
   int tx = threadIdx.x; // thread x in block
-  int ty = threadIdx.y; // thread y in block
+  int ty = threadIdx.y;
   int bx = blockIdx.x;
   int by = blockIdx.y;
   int x = tx + bx * blockDim.x; // global x
   int y = ty + by * blockDim.y; // global y
 
+  int x_base = m*k*bx + ty*k; // y1
+  int y_base = m*k*by + ty*k; // y2
+
+
+  __syncthreads();
+  if (tx == 0 && ty == 0) printf("block at: y=%d, x=%d\n", by, bx);
+  __syncthreads();
+  printf("thread at point: y=%d, x=%d\n", y, x);
+  __syncthreads();
+  printf("txty: ty=%d, tx=%d\n", ty, tx);
+  __syncthreads();
+
+  // if (x < y || x >= ny || y >= ny) return;
+
   for (int mx=0; mx<nx; mx+=m) {
     for (int i=0; i<k; i++) {
-      // y =  k * m * blockIdx.x + threadIdx.y * k + i;
-      // y =  k * m * blockIdx.y + threadIdx.y * k + i;
-      A1[tx][ty][i] = X[k * m * bx + ty * k + i];
-      A2[tx][ty][i] = X[k * m * by + ty * k + i];
+      // Are these correct??
+      A1[ty][tx][i] = X[(x_base + i)*nx + (mx + tx)];
+      A2[ty][tx][i] = X[(y_base + i)*nx + (mx + tx)];
+    }
+
+    if (tx == 0 && ty == 0) printf("printing cache, mx=%d, tx=%d, ty=%d", mx, tx, ty);
+    for (int j=0; j<m; j++) {
+      for (int kk=0; kk<k; kk++) {
+	printf("\n");
+	for (int i=0; i<m; i++) {
+	  if (tx == 0 && ty == 0) printf("%f\t", A1[j][i][kk]);
+	}
+      }
+      if (tx == 0 && ty == 0) printf("\n");
     }
 
     __syncthreads();
 
-    for (int i=0; i<k; i++) {
-      for (int j=0; j<k; j++) {
-	tmp[j*k + i] = s;
+    for (int mm=0; mm<m; mm++) {
+      if (tx == 0 && ty == 0) printf("mm=%d\n", mm);
+      for (int i=0; i<k; i++) {
+	for (int j=0; j<k; j++) {
+	  tmp[j][i] += A1[tx][mm][i] * A2[ty][mm][j];
+	  if (tx == 0 && ty == 0) printf("%f\t", tmp[j][i]);
+	}
+	if (tx == 0 && ty == 0) printf("\n");
       }
     }
   }
-  // for (int i=p; i<nx; i++) {
-  //   r += X[x*nx + i] * X[y*nx + i];
-  // }
 
-  // result[y*ny + x] = r;
+  for (int i=0; i<k; i++) {
+    for (int j=0; j<k; j++) {
+      result[(y_base + j) * ny + (x_base + i)] = tmp[j][i];
+    }
+  }
 }
 
 void correlate(int ny, int nx, const float* data, float* result) {
@@ -90,8 +118,8 @@ void correlate(int ny, int nx, const float* data, float* result) {
   float* X = (float*) malloc(sizeof(float) * nx * ny);
   float* dev_X;
   float* dev_result;
-  const int k = 4;
-  const int m = 3;
+  int m = M;
+  int k = K;
 
   for (int y=0; y<ny; y++) {
     row_mean = get_mean(&data[y*nx], nx);
@@ -107,6 +135,13 @@ void correlate(int ny, int nx, const float* data, float* result) {
     }
   }
 
+  printf("\nnormalized data:\n");
+  for (int j=0; j<ny; j++) {
+    for (int i=0; i<nx; i++) {
+      std::cout << X[j*nx + i] << " ";
+    }
+    printf("\n");
+  }
 
   // Allocate GPU memory for X
   CHECK_CUDA_ERROR( cudaMalloc( (void**)&dev_X, ny * nx * sizeof(float) ) );
@@ -119,10 +154,10 @@ void correlate(int ny, int nx, const float* data, float* result) {
 			       cudaMemcpyHostToDevice) );
 
   dim3 szBlock(m, m);
-  dim3 szGrid((ny + szBlock.x - 1) / szBlock.x,
-  	      (ny + szBlock.y - 1) / szBlock.y);
+  dim3 szGrid((ny + (szBlock.x*k) - 1) / (szBlock.x * k),
+  	      (ny + (szBlock.y*k) - 1) / (szBlock.y * k));
 
-  matrix_multiply<<<szGrid, szBlock>>>(nx, ny, dev_X, dev_result, m, k);
+  matrix_multiply<<<szGrid, szBlock>>>(nx, ny, dev_X, dev_result);
 
   CHECK_CUDA_ERROR(cudaGetLastError());
 
@@ -131,6 +166,15 @@ void correlate(int ny, int nx, const float* data, float* result) {
   			       dev_result,
   			       sizeof(float)*ny*ny,
   			       cudaMemcpyDeviceToHost) );
+
+
+  printf("\nresult:\n");
+  for (int j=0; j<ny; j++) {
+    for (int i=0; i<ny; i++) {
+      std::cout << result[j*nx + i] << " ";
+    }
+    printf("\n");
+  }
 
   free(X);
   cudaFree(dev_X);
