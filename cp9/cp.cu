@@ -57,19 +57,23 @@ __global__ void matrix_multiply(int nx, int ny, float* X, float* result) {
   int ty = threadIdx.y;
   int bx = blockIdx.x;
   int by = blockIdx.y;
-  int x = tx + bx * blockDim.x; // global x
-  int y = ty + by * blockDim.y; // global y
+  // int x = tx + bx * blockDim.x; // global x
+  // int y = ty + by * blockDim.y; // global y
 
   int x_base = m*k*bx; // y1
   int y_base = m*k*by; // y2
 
-  // if (x < y || x >= ny || y >= ny) return;
+  if (bx < by) return;
 
   for (int mx=0; mx<nx; mx+=m) {
     for (int i=0; i<k; i++) {
-
-      A1[ty][tx][i] = X[(x_base + ty*k + i)*nx + (mx + tx)];
-      A2[ty][tx][i] = X[(y_base + ty*k+ i)*nx + (mx + tx)];
+      if ( (x_base + ty*k + i >= ny) || (y_base + ty*k + i >= ny) || (mx + tx >= nx) ) {
+	A1[ty][tx][i] = 0;
+	A2[ty][tx][i] = 0;
+      } else {
+	A1[ty][tx][i] = X[(x_base + ty*k + i)*nx + (mx + tx)];
+	A2[ty][tx][i] = X[(y_base + ty*k + i)*nx + (mx + tx)];
+      }
     }
 
     __syncthreads();
@@ -77,7 +81,7 @@ __global__ void matrix_multiply(int nx, int ny, float* X, float* result) {
     for (int mm=0; mm<m; mm++) {
       for (int i=0; i<k; i++) {
 	for (int j=0; j<k; j++) {
-	  tmp[j][i] += A1[tx][mm][i] * A2[ty][mm][j];
+	  tmp[j][i] += A1[ty][mm][j] * A2[tx][mm][i];
 	}
       }
     }
@@ -85,7 +89,9 @@ __global__ void matrix_multiply(int nx, int ny, float* X, float* result) {
 
   for (int i=0; i<k; i++) {
     for (int j=0; j<k; j++) {
-      result[(y_base + ty*k + j) * ny + (x_base + tx*k + i)] = tmp[j][i];
+      if ( (y_base + ty*k + j) < ny && (x_base + tx*k + i) < ny ) {
+	result[(y_base + ty*k + j) * ny + (x_base + tx*k + i)] = tmp[j][i];
+      }
     }
   }
 }
@@ -136,6 +142,14 @@ void correlate(int ny, int nx, const float* data, float* result) {
   			       sizeof(float)*ny*ny,
   			       cudaMemcpyDeviceToHost) );
 
+  printf("\nresult:\n");
+  for (int j=0; j<ny; j++) {
+    for (int i=0; i<ny; i++) {
+      printf("%.5f ", result[j*nx + i]);
+      //      std::cout <<  << " ";
+    }
+    printf("\n");
+  }
   free(X);
   cudaFree(dev_X);
   cudaFree(dev_result);
