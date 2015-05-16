@@ -44,8 +44,8 @@ float get_root_square_sum(float* row, int nx) {
   return root_square_sum;
 }
 
-#define M 2
-#define K 2
+#define M 25
+#define K 5
 __global__ void matrix_multiply(int nx, int ny, float* X, float* result) {
   const int m = M;
   const int k = K;
@@ -65,13 +65,15 @@ __global__ void matrix_multiply(int nx, int ny, float* X, float* result) {
 
   for (int mx=0; mx<nx; mx+=m) {
     for (int i=0; i<k; i++) {
-      if ( (x_base + ty*k + i >= ny) || (y_base + ty*k + i >= ny) || (mx + tx >= nx) ) {
-	A1[ty][tx][i] = 0.0;
-	A2[ty][tx][i] = 0.0;
-      } else {
-	A1[ty][tx][i] = X[(x_base + ty*k + i)*nx + (mx + tx)];
-	A2[ty][tx][i] = X[(y_base + ty*k + i)*nx + (mx + tx)];
-      }
+      	A1[ty][tx][i] = 0.0;
+      	A2[ty][tx][i] = 0.0;
+      // if ( (x_base + ty*k + i >= ny) || (y_base + ty*k + i >= ny) || (mx + tx >= nx) ) {
+      // 	A1[ty][tx][i] = 0.0;
+      // 	A2[ty][tx][i] = 0.0;
+      // } else {
+      // 	A1[ty][tx][i] = X[(x_base + ty*k + i)*nx + (mx + tx)];
+      // 	A2[ty][tx][i] = X[(y_base + ty*k + i)*nx + (mx + tx)];
+      // }
     }
 
     __syncthreads();
@@ -85,11 +87,15 @@ __global__ void matrix_multiply(int nx, int ny, float* X, float* result) {
     }
   }
 
+  int y_base2 = y_base + ty*k;
+  int x_base2 = x_base + tx*k;
   for (int i=0; i<k; i++) {
+    int x_ind = x_base2 + i;
+    if (x_ind < ny) continue;
     for (int j=0; j<k; j++) {
-      if ( (y_base + ty*k + j) < ny && (x_base + tx*k + i) < ny ) {
-	result[(y_base + ty*k + j) * ny + (x_base + tx*k + i)] = tmp[j][i];
-      }
+      int y_ind = y_base2 + j;
+      if (y_ind < ny) continue;
+      result[y_ind * ny + x_ind] = tmp[j][i];
     }
   }
 }
