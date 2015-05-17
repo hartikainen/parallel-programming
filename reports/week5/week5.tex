@@ -1,0 +1,47 @@
+\documentclass[a4paper,10pt]{article}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{amsthm}
+\usepackage{hyperref, url}
+\usepackage{listings}
+\usepackage{verbatim}
+\usepackage{color}
+\usepackage[T1]{fontenc}
+\usepackage{csvsimple, array, booktabs, longtable}
+
+\newcommand\figureFromFile[3] {
+  \pagebreak
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{#1.#2}
+    \caption{#3}
+    \label{fig:#1}
+  \end{figure}
+}
+
+\parindent 0mm
+\parskip 3mm
+
+\title{ICS-4020 Programming Parallel Computers Week 5}
+\author{Kristian Hartikainen (222956)\\
+       {\tt kristian.hartikainen@aalto.fi}}
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+\input{introduction.tex}
+
+\pagebreak
+\section{Results}
+\input{results.tex}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
