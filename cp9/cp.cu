@@ -65,6 +65,7 @@ __global__ void matrix_multiply(int nx, int ny, float* X, float* result) {
 	}
       }
     }
+    __syncthreads();
   }
 
   int y_base2 = y_base + ty*k;
