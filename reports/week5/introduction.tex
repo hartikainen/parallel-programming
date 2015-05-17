@@ -1,0 +1,14 @@
+I extended the last week's cp8 solution to speed up the matrix dot product calculation. In outline, the fuctionality is quite the same as in last week's solution. The speed ups are achieved by efficiently utilizing the shared cache of the GPU's streaming multiprocessors, and the threads' local caches.
+
+The matrix multiplication is done by dividing the output matrix into squares of size mk * mk, which presents the calculations done in each cuda block. These mk * mk squares are again divided into k * k squares which correspond to each cuda thread. Thus, each thread has to fetch 2*k data points to the cuda block cache, and it calculates k*k points for the result matrix. With this hardware, values m=25 and k=5 turned out to be succifiently fast. These were determined by first trying out different k values such that the stored values still fit into the thread cache on this hardware. After that, m was incremented until the block cache ran out.
+
+In my solution, I pad the normalized matrix such that it's x and y dimensions are both divisible my m*k. This way I don't have to do any conditional operations in the kernels, and thus reduce the run time.
+
+The benchmarks were run on the classroom computer 'kiwi'. The benchmarks and the plot for are shown in the results section.
+
+The fastest running time for 4000*4000 matrix was 0.795s.
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "week5.tex"
+%%% End:
