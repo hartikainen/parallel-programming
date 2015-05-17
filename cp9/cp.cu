@@ -4,19 +4,6 @@
 #include <stdio.h>
 #include <iostream>
 
-// input in global memory, get reasonable chunk to shared memory.
-// shared memory -> registers -> do multiplications
-
-// what are the bottlenecks?
-// take kernel -> comment everything -> get the performance for different parts
-
-// make -j parallelizes compilation
-// make SMS=30: only produce machine code only from specific machine
-
-// shared memory: 48kb per SM
-// global memory: 2gb
-// 2 SM's
-
 #define CHECK_CUDA_ERROR(call) do { \
   cudaError_t result_ = (call); \
   if (result_ != cudaSuccess) { \
@@ -65,15 +52,8 @@ __global__ void matrix_multiply(int nx, int ny, float* X, float* result) {
 
   for (int mx=0; mx<nx; mx+=m) {
     for (int i=0; i<k; i++) {
-      	A1[ty][tx][i] = 0.0;
-      	A2[ty][tx][i] = 0.0;
-      // if ( (x_base + ty*k + i >= ny) || (y_base + ty*k + i >= ny) || (mx + tx >= nx) ) {
-      // 	A1[ty][tx][i] = 0.0;
-      // 	A2[ty][tx][i] = 0.0;
-      // } else {
-      // 	A1[ty][tx][i] = X[(x_base + ty*k + i)*nx + (mx + tx)];
-      // 	A2[ty][tx][i] = X[(y_base + ty*k + i)*nx + (mx + tx)];
-      // }
+      A1[ty][tx][i] = X[(x_base + ty*k + i)*nx + (mx + tx)];
+      A2[ty][tx][i] = X[(y_base + ty*k + i)*nx + (mx + tx)];
     }
 
     __syncthreads();
@@ -91,10 +71,8 @@ __global__ void matrix_multiply(int nx, int ny, float* X, float* result) {
   int x_base2 = x_base + tx*k;
   for (int i=0; i<k; i++) {
     int x_ind = x_base2 + i;
-    if (x_ind < ny) continue;
     for (int j=0; j<k; j++) {
       int y_ind = y_base2 + j;
-      if (y_ind < ny) continue;
       result[y_ind * ny + x_ind] = tmp[j][i];
     }
   }
@@ -102,58 +80,67 @@ __global__ void matrix_multiply(int nx, int ny, float* X, float* result) {
 
 void correlate(int ny, int nx, const float* data, float* result) {
   float row_mean, row_rss;
-  float* X = (float*) malloc(sizeof(float) * nx * ny);
   float* dev_X;
   float* dev_result;
   int m = M;
   int k = K;
 
+  int new_x = (nx/(m*k) + 1) * (m*k);
+  int new_y = (ny/(m*k) + 1) * (m*k);
+
+  dim3 szBlock(m, m);
+  dim3 szGrid((new_y + (szBlock.x*k) - 1) / (szBlock.x * k),
+  	      (new_y + (szBlock.y*k) - 1) / (szBlock.y * k));
+
+  float* X = (float*) malloc(sizeof(float) * new_x * new_y);
+
   for (int y=0; y<ny; y++) {
     row_mean = get_mean(&data[y*nx], nx);
 
     for (int x=0; x<nx; x++) {
-      X[y*nx + x] = (data[y*nx + x]) - row_mean;
+      X[y*new_x + x] = (data[y*nx + x]) - row_mean;
+    }
+    // pad the columns
+    for (int x=nx; x<new_x; x++) {
+      X[y*new_x + x] = 0.0;
     }
 
-    row_rss = get_root_square_sum(&X[y*nx], nx);
+    row_rss = get_root_square_sum(&X[y*new_x], nx);
 
     for (int x=0; x<nx; x++) {
-      X[y*nx + x] = X[y*nx + x] / row_rss;
+      X[y*new_x + x] = X[y*new_x + x] / row_rss;
+    }
+  }
+
+  // pad the rows3
+  for (int y=ny; y<new_y; y++) {
+    for (int x=0; x<new_x; x++) {
+      X[y*new_x + x] = 0.0;
     }
   }
 
   // Allocate GPU memory for X
-  CHECK_CUDA_ERROR( cudaMalloc( (void**)&dev_X, ny * nx * sizeof(float) ) );
-  CHECK_CUDA_ERROR( cudaMalloc( (void**)&dev_result, ny * ny * sizeof(float) ) );
+  CHECK_CUDA_ERROR( cudaMalloc( (void**)&dev_X, new_y * new_x * sizeof(float) ) );
+  CHECK_CUDA_ERROR( cudaMalloc( (void**)&dev_result, new_y * new_y * sizeof(float) ) );
 
   // Copy X to the GPU memory.
   CHECK_CUDA_ERROR( cudaMemcpy(dev_X,
 			       X,
-			       sizeof(float)*nx*ny,
+			       sizeof(float)*new_x*new_y,
 			       cudaMemcpyHostToDevice) );
 
-  dim3 szBlock(m, m);
-  dim3 szGrid((ny + (szBlock.x*k) - 1) / (szBlock.x * k),
-  	      (ny + (szBlock.y*k) - 1) / (szBlock.y * k));
-
-  matrix_multiply<<<szGrid, szBlock>>>(nx, ny, dev_X, dev_result);
+  matrix_multiply<<<szGrid, szBlock>>>(new_x, new_y, dev_X, dev_result);
 
   CHECK_CUDA_ERROR(cudaGetLastError());
 
   // Copy result back to the CPU memory
-  CHECK_CUDA_ERROR( cudaMemcpy(result,
-  			       dev_result,
-  			       sizeof(float)*ny*ny,
-  			       cudaMemcpyDeviceToHost) );
-
-  printf("\nresult:\n");
-  for (int j=0; j<ny; j++) {
-    for (int i=0; i<ny; i++) {
-      printf("%.5f ", result[j*nx + i]);
-      //      std::cout <<  << " ";
-    }
-    printf("\n");
+  for (int y=0; y<ny; y++) {
+    CHECK_CUDA_ERROR( cudaMemcpy(&result[y*ny],
+  				 &dev_result[y*new_y],
+  				 sizeof(float)*ny,
+  				 cudaMemcpyDeviceToHost) );
   }
+
   free(X);
   cudaFree(dev_X);
   cudaFree(dev_result);
